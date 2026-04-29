@@ -1,0 +1,59 @@
+url: https://luciasouto13.github.io/mcstprules/
+template:
+  bootstrap: 5
+  includes:
+    in_header: |
+      <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+navbar:
+  structure:
+    left: [intro, reference, demo]  # articles
+    right: [github, manual]
+  components:
+
+    # articles:
+    #   text: "User Guides"
+    #   menu:
+    #     - text: "Algorithmic Rules Guide"
+    #       href: articles/algorithmic_rules.html
+    #     - text: "Cooperative Games Guide"
+    #       href: articles/cooperative_games.html
+
+    demo:
+      text: "Demo"
+      menu:
+       - text: "Basic Example"
+         href: articles/basic_example.html
+       - text: "Source Code (.R file)"
+         href: https://github.com/luciasouto13/mcstprules/blob/main/demo/basic_example.R
+
+    manual:
+      text: "PDF Manual"
+      href: mcstprules_0.1.0.pdf
+
+reference:
+  - title: "Package Overview"
+    desc: "General information about the implemented rules."
+    contents:
+      - alloc_rules
+
+  - title: "Algorithmic & Decomposition Rules"
+    desc: "Rules based on Prim, Kruskal, Boruvka, and cone-wise decomposition."
+    contents:
+      - bird_rule
+      - dk_rule
+      - folk_rule
+      - ows_rule
+      - pws_rule
+      - boruvka_rule
+      - conewise_rule
+
+  - title: "Cooperative Games"
+    desc: "Cost allocations based on the Shapley value of associated cooperative games."
+    contents:
+      - private_game
+      - irred_game
+      - opt_game
+      - public_game
+      - cc_game

@@ -1,0 +1,130 @@
+#' Overview of Rules for Minimum Cost Spanning Tree Problems
+#'
+#' @description
+#' This page provides an overview of the cost allocation rules implemented in this
+#' package for minimum cost spanning tree problems (MCSTP).
+#' The rules are organized into two main approaches: those defined directly through
+#' algorithms and decomposition techniques, and those defined through the analysis
+#' of associated cooperative games.
+#'
+#' @details
+#' The cost allocation rules can be classified as follows:
+#'
+#'
+#' \bold{RULES DEFINED THROUGH THE PROBLEM}
+#'
+#' These rules are obtained directly from the network's structure and
+#' classical MST algorithms.
+#'
+#'
+#' \emph{Based on Prim's algorithm:}
+#'
+#' These rules follow the growth of a single tree starting from the source.
+#' \itemize{
+#'   \item \code{\link{bird_rule}}: agents sequentially connect to the growing
+#'   tree, paying the cost of the arc through which they connect to the tree.
+#'   \item \code{\link{dk_rule}}: a modification of Bird's rule that introduces
+#'   a pivotal switch in the allocation cost at each step to ensure cost monotonicity.
+#' }
+#'
+#'
+#' \emph{Based on Kruskal's algorithm:}
+#'
+#' Based on obligation functions, these rules follow Kruskal's logic of
+#' merging connected components using the cheapest available arcs.
+#' \itemize{
+#'   \item \code{\link{folk_rule}}: the agents divide the cost of connecting
+#'   their components equally (ERO rule).
+#'   \item \code{\link{ows_rule}}: optimistic weighted Shapley rule. A
+#'   generalization of the folk rule that distributes costs proportionally
+#'   based on asymmetric positive weights.
+#'   \item \code{\link{pws_rule}}: pessimistic weighted Shapley rule. An
+#'   alternative weighted extension based on a permutation-driven obligation function.
+#' }
+#'
+#'
+#' \emph{Based on Boruvka's algorithm:}
+#'
+#' \itemize{
+#'   \item \code{\link{boruvka_rule}}: the agents pay the maximum possible proportion
+#'   of the cheapest arc selected by their component. The numerical outcome
+#'   is mathematically equivalent to the \code{\link{folk_rule}}.
+#' }
+#'
+#'
+#' \emph{Based on a cone-wise decomposition:}
+#'
+#' \itemize{
+#'   \item \code{\link{conewise_rule}}: a technique that decomposes any general
+#'   MCSTP into a nonnegative combination of elementary problems (where costs
+#'   are 0 or 1). It allows extending rules like \code{"folk"}, \code{"ows"},
+#'   or the Bogomolnaia and Moulin family (\code{"bogomolnaia"}) to general networks.
+#' }
+#'
+#'
+#' \bold{RULES DEFINED THROUGH COOPERATIVE GAMES}
+#'
+#' These rules are defined by first associating a cooperative game (in
+#' characteristic function form) to the MCSTP and then applying a solution
+#' concept (like the Shapley value or the Nucleolus).
+#'
+#'
+#' \emph{Private game:}
+#' \itemize{
+#'   \item \code{\link{private_game}}: defines the cost of a coalition as the
+#'   MST cost of the subproblem formed by its members and the source (pessimistic
+#'   approach).
+#' }
+#'
+#'
+#' \emph{Irreducible game:}
+#' \itemize{
+#'   \item \code{\link{irred_game}}: based on the irreducible matrix \eqn{\bar{C}},
+#'   where costs reflect the cheapest way to connect each pair of nodes through
+#'   the network.
+#' }
+#'
+#'
+#' \emph{Optimistic game:}
+#' \itemize{
+#'   \item \code{\link{opt_game}}: allows a coalition to connect through nodes
+#'   outside the coalition at no cost.
+#' }
+#'
+#'
+#' \emph{Public game:}
+#' \itemize{
+#'   \item \code{\link{public_game}}: assigns to each coalition the minimum cost
+#'   achievable when connections through other agents are publicly available.
+#' }
+#'
+#'
+#' \emph{Cycle-complete game:}
+#' \itemize{
+#'   \item \code{\link{cc_game}}: based on the cycle-complete matrix \eqn{C^*},
+#'   which induces a concave cooperative game.
+#' }
+#'
+#' @note
+#' When the optimal tree is not unique, rules based on Prim's algorithm compute
+#' the symmetric average allocation over all possible permutations.
+#' In contrast, rules based on Kruskal's and Boruvka's algorithms, as well as the
+#' cone-wise decomposition, are unaffected by tie-breaking choices.
+#'
+#' For game-theoretic rules, the functions in this package compute
+#' the Shapley value of the associated cooperative game.
+#'
+#' @references
+#' Bergantiños, G., & Vidal-Puga, J. (2021). A review of cooperative rules
+#' and their associated algorithms for minimum-cost spanning tree problems.
+#' SERIEs, 12:73-100.
+#'
+#' @concept Algorithmic Rules
+#' @concept Cooperative Games
+#' @concept MCSTP
+#'
+#' @name alloc_rules
+NULL
+
+
+
