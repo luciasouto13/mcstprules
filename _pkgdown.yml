@@ -30,7 +30,7 @@ navbar:
         - text: "Scalability"
           href: articles/scalability.html
         - text: "Source Code (.R files)"
-          href: https://github.com/luciasouto13/mcstprules/blob/main/demo
+          href: https://github.com/luciasouto13/mcstprules/tree/master/demo
 
     manual:
       text: "PDF Manual"

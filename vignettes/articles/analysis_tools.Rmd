@@ -9,4 +9,4 @@ This demo runs the code from `demo("analysis_tools", package = "mcstprules")` in
 
 ---
 
-You can also [download the raw R script here](https://github.com/luciasouto13/mcstprules/blob/main/demo/analysis_tools.R) to run it locally on your computer.
+You can also [download the raw R script here](https://github.com/luciasouto13/mcstprules/blob/master/demo/analysis_tools.R) to run it locally on your computer.
