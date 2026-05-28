@@ -194,7 +194,17 @@ mcstCoreCheck(game = mcstGamePrivate(costs))
 
 ``` r
 # Core Emptiness
-core <- mcstCorePoints(game = mcstGamePrivate(costs))
+core <- mcstCorePoints(game = mcstGamePrivate(costs)); core
+#> -------------------------
+#>  Core Emptiness Analysis
+#> -------------------------
+#> Players (n) : 3 
+#> Total Cost  : 22 
+#> 
+#> Result: the core IS NOT EMPTY
+#> A feasible core allocation:
+#>  1  2  3 
+#> 12  4  6
 plot(core)
 ```
 
