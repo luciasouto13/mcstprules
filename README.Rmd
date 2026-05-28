@@ -145,7 +145,7 @@ mcstCoreCheck(game = mcstGamePrivate(costs))
 
 ```{r plot_core, fig.alt = "Graphical representation of the core", fig.width = 5.75, fig.height = 5.75}
 # Core Emptiness
-core <- mcstCorePoints(game = mcstGamePrivate(costs))
+core <- mcstCorePoints(game = mcstGamePrivate(costs)); core
 plot(core)
 ```
 
