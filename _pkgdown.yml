@@ -21,12 +21,16 @@ navbar:
     #       href: articles/cooperative_games.html
 
     demo:
-      text: "Demo"
+      text: "Demos"
       menu:
-       - text: "Basic Example"
-         href: articles/basic_example.html
-       - text: "Source Code (.R file)"
-         href: https://github.com/luciasouto13/mcstprules/blob/main/demo/basic_example.R
+        - text: "Basic Rules"
+          href: articles/basic_rules.html
+        - text: "Analysis Tools"
+          href: articles/analysis_tools.html
+        - text: "Scalability"
+          href: articles/scalability.html
+        - text: "Source Code (.R files)"
+          href: https://github.com/luciasouto13/mcstprules/blob/main/demo
 
     manual:
       text: "PDF Manual"
@@ -34,26 +38,37 @@ navbar:
 
 reference:
   - title: "Package Overview"
-    desc: "General information about the implemented rules."
+    desc: "General information about the implemented rules and analysis tools."
     contents:
-      - alloc_rules
+      - mcstRules
 
   - title: "Algorithmic & Decomposition Rules"
     desc: "Rules based on Prim, Kruskal, Boruvka, and cone-wise decomposition."
     contents:
-      - bird_rule
-      - dk_rule
-      - folk_rule
-      - ows_rule
-      - pws_rule
-      - boruvka_rule
-      - conewise_rule
+      - mcstBird
+      - mcstDuttaKar
+      - mcstFolk
+      - mcstOWShapley
+      - mcstPWShapley
+      - mcstBoruvka
+      - mcstCone
 
   - title: "Cooperative Games"
-    desc: "Cost allocations based on the Shapley value of associated cooperative games."
+    desc: "Cost allocations based on the Shapley value or Nucleolus of associated cooperative games."
     contents:
-      - private_game
-      - irred_game
-      - opt_game
-      - public_game
-      - cc_game
+      - mcstGamePrivate
+      - mcstKar
+      - mcstGameIrred
+      - mcstGameOpt
+      - mcstGamePublic
+      - mcstGameCC
+
+  - title: "Analysis Tools"
+    desc: "Tools to evaluate core stability, geometric properties, sensitivity, and compare allocations."
+    contents:
+      - mcstCoreCheck
+      - mcstCorePoints
+      - mcstCorePlot
+      - mcstStabilityRange
+      - mcstSensitivity
+      - mcstCompare

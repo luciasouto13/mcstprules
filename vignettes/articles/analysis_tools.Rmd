@@ -1,0 +1,12 @@
+---
+title: "Demo for 'mcstprules::analysis_tools'"
+---
+
+This demo runs the code from `demo("analysis_tools", package = "mcstprules")` in R. 
+
+```{r demo_execution, code = readLines(system.file("demo", "analysis_tools.R", package = "mcstprules")), fig.alt = "Core allocation check plot, 2D geometric visualization of the core region, and line charts showing arc cost sensitivity analysis."}
+```
+
+---
+
+You can also [download the raw R script here](https://github.com/luciasouto13/mcstprules/blob/main/demo/analysis_tools.R) to run it locally on your computer.

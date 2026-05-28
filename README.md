@@ -5,16 +5,16 @@
 <!-- badges: end -->
 
 The goal of `mcstprules` is to provide a comprehensive set of tools to
-compute and visualize cost allocation rules for Minimum Cost Spanning
-Tree Problems (MCSTP). The package implements two major approaches found
-in the literature: algorithmic rules and rules defined through
-cooperative games.
+compute, analyze, and visualize cost allocation rules for Minimum Cost
+Spanning Tree Problems (MCSTP). The package implements algorithmic
+methods, rules based on cooperative game theory, and a robust suite of
+analytical tools.
 
 <br>
 
 ## Installation
 
-You can install the development version of mcstprules from
+You can install the development version of `mcstprules` from
 [GitHub](https://github.com/) with:
 
 ``` r
@@ -26,67 +26,93 @@ pak::pak("luciasouto13/mcstprules")
 
 ## Features
 
-The package organizes cost allocation rules into two main categories:
+The package organizes its functions into three main categories:
 
 ### Algorithmic Rules
 
 These rules are derived directly from the network’s structure and
 classic MST algorithms:
 
-- Prim-based: `bird_rule` (Bird’ Rule) and `dk_rule` (Dutta-Kar).
+- Prim-Based: `mcstBird` (Bird) and `mcstDuttaKar` (Dutta-Kar).
 
-- Kruskal-based: `folk_rule` (Folk Rule/ERO), `ows_rule` (Optimistic
-  Weighted Shapley), and `pws_rule` (Pessimistic Weighted Shapley).
+- Kruskal-Based: `mcstFolk` (Folk/ERO), `mcstOWShapley` (Optimistic
+  Weighted Shapley), and `mcstPWShapley` (Pessimistic Weighted Shapley).
 
-- Other approaches: `boruvka_rule` (Boruvka’s Rule) and `conewise_rule`
-  (Cone-wise Decomposition).
+- Other Approaches: `mcstBoruvka` (Boruvka) and `mcstCone` (Cone-wise
+  Decomposition).
 
 ### Cooperative Games
 
-These rules compute the Shapley value of cooperative games associated
-with the MCSTP:
+These rules compute the Shapley value or the Nucleolus of cooperative
+games associated with the MCSTP:
 
-- `private_game`: also known as the pessimistic game (Kar’s Rule).
+- `mcstGamePrivate`: also known as the pessimistic game. Its Shapley
+  value corresponds to Kar’s rule (`mcstKar`).
 
-- `irred_game`: based on the irreducible cost matrix.
+- `mcstGameIrred`: based on the irreducible cost matrix.
 
-- `opt_game`: optimistic game approach.
+- `mcstGameOpt`: optimistic game approach.
 
-- `public_game`: connections through agents are publicly available.
+- `mcstGamePublic`: connections through agents are publicly available.
 
-- `cc_game`: based on the cycle-complete matrix.
+- `mcstGameCC`: based on the cycle-complete matrix.
+
+### Analysis Tools
+
+A comprehensive suite to evaluate stability and sensitivity:
+
+- Core Stability & Geometry: `mcstCoreCheck`, `mcstCorePoints`, and
+  `mcstCorePlot` to evaluate stability, find blocking coalitions, and
+  visualize the core region.
+
+- Sensitivity: `mcstStabilityRange` and `mcstSensitivity` to evaluate
+  how cost variations affect optimal trees and cost allocations.
+
+- Comparison: `mcstCompare` to simultaneously evaluate the main rules.
 
 <br>
 
 ## Examples
 
-This basic examples show how to define a cost matrix (or its equivalent
-lower triangular vector) and compute cost allocations for a 3-agent
-problem (where node 0 is the source):
+The package is highly flexible and accepts network costs in multiple
+formats: square matrices, lower triangular vectors, edge lists, `igraph`
+objects, and even direct `.csv` or `.xlsx` file paths.
+
+This basic example shows how to define a cost matrix and compute cost
+allocations for a 3-agent problem (where node 0 is the source):
 
 ``` r
 library(mcstprules)
 
 # Define a cost matrix for 3 agents + source (node 0)
-costs <- matrix(c(0, 12, 15, 12,
-                 12,  0,  4,  6,
-                 15,  4,  0,  8,
-                 12,  6,  8,  0), nrow = 4, byrow = TRUE)
-# Equivalent lower triangular vector without the diagonal
-# costs <- c(12, 15, 12, 4, 6, 8)
+
+# 1. Using an edge list format
+costs <- data.frame(from = c(0, 0, 0, 1, 1, 2),
+                    to   = c(1, 2, 3, 2, 3, 3),
+                    cost = c(12, 15, 12, 4, 6, 8))
+
+# 2. Using a square matrix
+# costs <- matrix(c(0, 12, 15, 12,
+#                  12,  0,  4,  6,
+#                  15,  4,  0,  8,
+#                  12,  6,  8,  0), nrow = 4, byrow = TRUE)
+
+# 3. Using the lower triangular vector
+# costs <- c(12, 15, 12, 4, 6, 8) 
+
 
 # Algorithmic rules
-bird_rule(costs)
+mcstBird(costs)
 #> Non-unique MCST detected
 #>           1 2 3
 #> B(id)    12 4 6
 #> E[B(pi)]  9 4 9
-folk_rule(costs)
+mcstFolk(costs)
 #> 1 2 3 
 #> 7 7 8
 
 # Cooperative game theory rules
-private_game(costs)
+mcstKar(costs)
 #>       S v^p(S)
 #> 1   {1}     12
 #> 2   {2}     15
@@ -96,10 +122,10 @@ private_game(costs)
 #> 6 {2,3}     20
 #> 7     N     22
 #> 
-#> Solution: Shapley value
+#> Solution: Shapley 
 #>    1    2    3 
 #> 5.83 8.33 7.83
-public_game(costs)
+mcstGamePublic(costs, sol = "nucleolus")
 #>       S v^u(S)
 #> 1   {1}     12
 #> 2   {2}     15
@@ -109,9 +135,24 @@ public_game(costs)
 #> 6 {2,3}     20
 #> 7     N     22
 #> 
-#> Solution: Shapley value
-#>    1    2    3 
-#> 5.83 8.33 7.83
+#> Solution: Nucleolus 
+#>  1  2  3 
+#> 10 13 -1
+```
+
+### Comparing Rules
+
+You can easily compare the standard allocation rules:
+
+``` r
+mcstCompare(costs)
+#> ----------------------------------
+#>  MCST Allocation Rules Comparison
+#> ----------------------------------
+#>  agent bird dutta_kar folk kar
+#>      1    9         4    7 5.8
+#>      2    4         9    7 8.3
+#>      3    9         9    8 7.8
 ```
 
 ### Visualizing the problem
@@ -121,19 +162,52 @@ the built-in plotting capabilities (based on the `igraph` package):
 
 ``` r
 # Example plot for Bird's Rule
-bird <- bird_rule(costs, draw = TRUE)
+bird <- mcstBird(costs, draw = TRUE)
 ```
 
-<img src="man/figures/README-plot-1.png" alt="Graphical representation of Bird's rule allocation" width="100%" /><img src="man/figures/README-plot-2.png" alt="Graphical representation of Bird's rule allocation" width="100%" />
+<img src="man/figures/README-plot-1.png" alt="Graphical representation of Bird's rule allocation" width="80%" /><img src="man/figures/README-plot-2.png" alt="Graphical representation of Bird's rule allocation" width="80%" />
 
 ``` r
 # Example plot for Private Game (Kar's rule)
-kar <- private_game(costs, draw = TRUE)
+kar <- mcstKar(costs, draw = TRUE)
 ```
 
-<img src="man/figures/README-plot_game-1.png" alt="Graphical representation of Kar's rule allocation" width="100%" /><img src="man/figures/README-plot_game-2.png" alt="Graphical representation of Kar's rule allocation" width="100%" />
+<img src="man/figures/README-plot_game-1.png" alt="Graphical representation of Kar's rule allocation" width="80%" /><img src="man/figures/README-plot_game-2.png" alt="Graphical representation of Kar's rule allocation" width="80%" />
+
+### Advanced Analysis
+
+`mcstprules` provides advanced tools to evaluate the stability,
+geometric properties, and sensitivity of the computed rules:
+
+``` r
+# Core Stability Check
+mcstCoreCheck(game = mcstGamePrivate(costs))
+#> -------------------------
+#>  Core Stability Analysis
+#> -------------------------
+#> Players (n) : 3 
+#> Efficiency  : Passed (Sum x: 22.00 | v(N): 22.00)
+#> Rationality : Passed 
+#> 
+#> Result: the allocation IS IN THE CORE (Stable)
+```
+
+``` r
+# Core Emptiness
+core <- mcstCorePoints(game = mcstGamePrivate(costs))
+plot(core)
+```
+
+<img src="man/figures/README-plot_core-1.png" alt="Graphical representation of the core" width="80%" />
+
+``` r
+# Sensitivity Analysis
+sens <- mcstSensitivity(costs, rule = "bird", arcs = c(1, 3))
+plot(sens)
+```
+
+<img src="man/figures/README-plot_sens-1.png" alt="Sensitivity analysis for arc 1-3" width="80%" />
 
 ## Documentation
 
-You can also download the [full PDF documentation
-here](mcstprules_0.1.0.pdf).
+You can also download the [full PDF manual here](mcstprules_0.1.0.pdf).

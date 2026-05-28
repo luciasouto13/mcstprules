@@ -1,0 +1,12 @@
+---
+title: "Demo for 'mcstprules::scalability'"
+---
+
+This demo runs the code from `demo("scalability", package = "mcstprules")` in R. 
+
+```{r demo_execution, code = readLines(system.file("demo", "scalability.R", package = "mcstprules"))}
+```
+
+---
+
+You can also [download the raw R script here](https://github.com/luciasouto13/mcstprules/blob/main/demo/scalability.R) to run it locally on your computer.

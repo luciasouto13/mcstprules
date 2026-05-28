@@ -6,16 +6,25 @@ Authors@R:
     person("Lucía", "Souto Vázquez", 
            email = "luciasouvaz@gmail.com", 
            role = c("aut", "cre"))
-Description: Computes cost allocation rules for Minimum Cost Spanning Tree 
-    Problems (MCSTP). The package implements both algorithmic methods 
-    and rules based on cooperative game theory.
+Description: Computes, analyzes, and visualizes cost allocation rules for 
+    Minimum Cost Spanning Tree Problems (MCSTP). The package implements 
+    both algorithmic methods and rules based on cooperative game theory, 
+    alongside a comprehensive suite of analytical tools to evaluate core 
+    stability, geometric properties, and cost sensitivity.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.3
 Imports: 
     gtools,
-    igraph
+    igraph,
+    readxl,
+    CoopGame,
+    fields,
+    geometry,
+    lpSolve,
+    plotly,
+    rcdd
 URL: https://github.com/luciasouto13/mcstprules, https://luciasouto13.github.io/mcstprules
 BugReports: https://github.com/luciasouto13/mcstprules/issues
 Suggests: 

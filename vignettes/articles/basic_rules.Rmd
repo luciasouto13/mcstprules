@@ -1,0 +1,12 @@
+---
+title: "Demo for 'mcstprules::basic_rules'"
+---
+
+This demo runs the code from `demo("basic_rules", package = "mcstprules")` in R. 
+
+```{r demo_execution, code = readLines(system.file("demo", "basic_rules.R", package = "mcstprules")), fig.alt = "Network graphs for Bird, Folk, Kar, and Public rules, and a bar chart comparing some cost allocations."}
+```
+
+---
+
+You can also [download the raw R script here](https://github.com/luciasouto13/mcstprules/blob/main/demo/basic_rules.R) to run it locally on your computer.

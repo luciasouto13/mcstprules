@@ -1,1 +1,3 @@
-basic_example    Comprehensive demonstration of MCSTP allocation rules
+basic_rules       Comprehensive demonstration of MCSTP allocation rules
+analysis_tools    Advanced analysis of core stability, geometry, and sensitivity
+scalability       Computational efficiency and Monte Carlo approximation

@@ -1,19 +1,19 @@
 # RULES DEFINED THROUGH THE PROBLEM
 
   # Based on Prim's algorithm
-    # Bird rule:                          bird_rule
-    # Dutta-Kar rule:                     dk_rule
+    # Bird rule:                          mcstBird
+    # Dutta-Kar rule:                     mcstDuttaKar
 
   # Based on Kruskal's algorithm
-    # Folk rule:                          folk_rule
-    # Optimistic weighted Shapley rule:   ows_rule
-    # Pessimistic weighted Shapley rule:  pws_rule
+    # Folk rule:                          mcstFolk
+    # Optimistic weighted Shapley rule:   mcstOWShapley
+    # Pessimistic weighted Shapley rule:  mcstPWShapley
 
   # Based on Boruvka's algorithm
-    # Boruvka rule:                       boruvka_rule
+    # Boruvka rule:                       mcstBoruvka
 
   # Based on a cone-wise decomposition
-    # Cone-wise rule:                     conewise_rule
+    # Cone-wise rule:                     mcstCone
 
 
 
@@ -37,36 +37,71 @@
 #' of building the network.
 #'
 #' When the minimum cost spanning tree is not unique, the rule is extended by
-#' averaging the allocations over all possible permutations \eqn{\pi \in \Pi_N}:
+#' averaging the allocations over all possible permutations \eqn{\pi \in \Pi_N}
+#' (\code{method = "exact"}):
 #'
-#' \deqn{B(N_0, C) = \displaystyle{\dfrac{1}{n!} \sum_{\pi \in \Pi_N} B^{\pi}(N_0, C),}}
+#' \deqn{B(N_0, C) = \displaystyle{\dfrac{1}{n!} \sum_{\pi \in \Pi_N} B^{\pi}(N_0, C)},}
 #'
 #' where \eqn{B^{\pi}(N_0, C)} is the allocation obtained by applying Prim's
 #' algorithm to \eqn{(N_0, C)} and solving indifferences by selecting the first
 #' agent given by the permutation \eqn{\pi}, as proposed by Dutta and Kar (2004).
 #'
-#' @param C a symmetric square matrix or a numeric vector representing the
-#' lower triangle of costs (ordered by columns) among the nodes in \eqn{N_0}.
-#' The first row and column are assumed to be the source (0). Supports \code{Inf}
-#' for disconnected nodes.
+#' Alternatively, \code{method = "montecarlo"} estimates the average allocation
+#' through random sampling using \eqn{n_{\text{sim}}} permutations. This is highly useful
+#' when the number of agents is large, as it significantly reduces computation
+#' time while providing a very accurate approximation:
+#'
+#' \deqn{B(N_0, C) \approx \displaystyle{\dfrac{1}{n_{\text{sim}}} \sum_{k=1}^{n_{\text{sim}}} B^{\pi_k}(N_0, C)},}
+#'
+#' where \eqn{\pi_k} represents each of the randomly sampled permutations.
+#' For networks with few agents, the exact method is preferred to avoid
+#' potential overestimations.
+#'
+#' @param C cost matrix between nodes. Accepts multiple formats (see
+#' "Supported formats for \code{C}" below).
 #' @param draw logical; if \code{TRUE}, plots the network highlighting an optimal
 #' tree in red, indicating the stage at which each arc is added (in brackets)
 #' and the cost allocated to each agent (in parentheses below the node). For \eqn{n \le 3}
-#' with ties, it also displays all possible trees.
-#' @param which numeric vector indicating which plots to display (only for \eqn{n \le 3}
-#' with ties). If \code{1}, displays the detailed breakdown of all trees and
-#' allocations according to the agents' entry orders; if \code{2}, the average allocation
-#' is plotted. Default is \code{c(1, 2)}.
+#' with ties and \code{method = "exact"}, it also displays all possible trees.
+#' @param which.plot character string indicating which plots to display (only for \eqn{n \le 3}
+#' with ties and \code{method = "exact"}). If \code{"details"}, displays the detailed breakdown of all trees and
+#' allocations according to the agents' entry orders; if \code{"main"}, the average allocation
+#' is plotted. Default is \code{c("main", "details")}.
 #' @param titles logical; if \code{TRUE} (default), adds a main title
-#' specifying the allocation rule and a subtitle with the algorithm used
+#' specifying the allocation rule and a subtitle with the algorithm, method (exact or Monte Carlo),
 #' and the total network cost.
+#' @param method character string specifying the calculation method when ties
+#' occur. If \code{"exact"} (default), computes all \eqn{n!} permutations; if \code{"montecarlo"},
+#' estimates the average allocation through random sampling using \code{nsim} permutations
+#' (recommended for large networks).
+#' @param nsim integer; the number of permutations to sample when using
+#' \code{method = "montecarlo"}. Default is 10,000.
 #'
-#' @note
-#' The function identifies if ties exist in the cost matrix. If the tree is
-#' unique, the standard Bird rule is returned. If ties are detected, it
-#' calculates the allocations for all \eqn{n!} permutations to provide the
-#' symmetrical average allocation, as discussed in Bergantiños and
-#' Vidal-Puga (2021).
+#' @section Supported formats for \code{C}:
+#'
+#' Note: In all cases, \code{Inf} is accepted for disconnected node pairs. The first
+#' row/column is assumed to be the source node (0).
+#'
+#' The function accepts the following formats for the cost input:
+#'
+#' \describe{
+#'   \item{Numeric vector}{The lower triangle of a symmetric cost matrix, excluding the diagonal.
+#'   Length must be \eqn{n(n+1)/2}, where \eqn{n} is the number of agents (excluding the source).}
+#'
+#'   \item{Square matrix / Data frame}{A standard adjacency matrix where \code{C[i, j]}
+#'   represents the cost between node \eqn{i} and node \eqn{j}.}
+#'
+#'   \item{Edge list (matrix or data frame)}{An alternative to the full matrix.
+#'   It must contain columns named \code{"from"} and \code{"to"},
+#'   plus a third column for the weights/costs.}
+#'
+#'   \item{'igraph' object}{A weighted undirected graph. See the \code{\link[igraph:igraph-package]{igraph}}
+#'   package for details on creating these objects.}
+#'
+#'   \item{File path}{A string pointing to a \code{.csv}, \code{.xlsx}, or \code{.xls} file.
+#'   The file can contain either a square matrix (without headers) or an edge list
+#'   (with \code{"from"} and \code{"to"} headers).}
+#' }
 #'
 #' @return A list containing:
 #' \itemize{
@@ -76,18 +111,19 @@
 #'   \item \code{total}: the total cost of the MCST, \eqn{m(N_0, C)}.
 #'   \item \code{percentage}: the share of the total cost allocated to each agent.
 #'   \item \code{ranking}: a ranking of agents by cost (from highest to lowest; ties marked with *).
-#'   \item \code{nperms}: the number of permutations \eqn{n!} computed for the average allocation (if ties exist).
-#'   \item \code{perms}: a data frame with the detailed allocations for all permutations (if ties exist).
+#'   \item \code{nperms}: the number of permutations (\eqn{n!} or \code{nsim}) computed for the average allocation (if ties exist).
+#'   \item \code{perms}: a data frame with the detailed allocations for the computed permutations (if ties exist).
 #'   \item \code{is_unique}: logical; if \code{TRUE}, the MCST is unique.
+#'   \item \code{method}: the method applied for computing the extended rule (\code{"exact"} or \code{"montecarlo"}).
 #' }
 #'
 #' @seealso
-#' \code{\link{dk_rule}} for other rule based on Prim's algorithm.
+#' \code{\link{mcstDuttaKar}} for other rule based on Prim's algorithm.
 #'
-#' \code{\link{irred_game}} for a cooperative game whose Shapley
+#' \code{\link{mcstGameIrred}} for a cooperative game whose Shapley
 #' value coincides with Bird's solution when applied to the irreducible matrix \eqn{\bar{C}}.
 #'
-#' \code{\link{alloc_rules}} for an overview of the available rules in the package.
+#' \code{\link{mcstRules}} for an overview of the available rules and analysis tools in the package.
 #'
 #' @references
 #' Bergantiños G, Vidal-Puga J (2021) A review of cooperative rules
@@ -102,52 +138,55 @@
 #'
 #' @examples
 #' # Simple vector input
-#' bird_rule(c(12, 15, 20, 4, 6, 8), draw = TRUE)
+#' mcstBird(c(12, 15, 20, 4, 6, 8), draw = TRUE)
 #'
 #' # Input with infinite costs (disconnected nodes)
 #' C_inf <- c(5, 9, Inf, 15, 6, Inf, 7, Inf, Inf, Inf,
 #'            Inf, 8, 7, Inf, Inf, 5, Inf, Inf, 8, 9, 11)
-#' bird_rule(C_inf)
+#' mcstBird(C_inf)
 #'
 #' # Matrix input with ties
 #' C_mat <- matrix(c(0, 12, 15, 12,
 #'                  12,  0,  4,  6,
 #'                  15,  4,  0,  8,
 #'                  12,  6,  8,  0), byrow = TRUE, ncol = 4)
-#' bird_rule(C_mat, draw = TRUE, which = 2, titles = FALSE)
+#' mcstBird(C_mat, draw = TRUE, which.plot = "main", titles = FALSE)
 #'
 #' @concept Algorithmic Rules
 #' @concept MCSTP
 #'
 #' @export
 
-bird_rule <- function(C, draw = FALSE, which = c(1, 2), titles = TRUE) {
+mcstBird <- function(C, draw = FALSE, which.plot = c("main", "details"), titles = TRUE, method = c("exact", "montecarlo"), nsim = 10000) {
 
   # Convert input into a standard cost matrix C for N_0 (agents + source)
   C_mat <- .prepare_matrix(C)
   n <- nrow(C_mat) - 1      # Number of agents n = |N|
   N <- as.character(1:n)    # Set of agents N = {1, ..., n}
 
+  method <- match.arg(method)
+  which.plot <- match.arg(which.plot, several.ok = TRUE)
+
   # Inner function to calculate Prim's algorithm and Bird's allocation
   # for a given order pi
-  .compute_bird <- function(C_mat, pi) {
+  .compute_bird <- function(C_mat, pi, n_agents) {
     S <- "0"          # Set of connected nodes. S^0 = {0} is the initial set (source)
     N_minus_S <- pi   # The set N \ S of agents not yet connected
-    allocations <- numeric(n)
+    allocations <- numeric(n_agents)
     names(allocations) <- pi
 
     # Arcs (i, j) of the minimal spanning tree g^n
     arcs <- data.frame(
-      i = character(n),     # Origin node in S
-      j = character(n),     # New agent in N \ S
-      stage = integer(n),   # The stage p in which the arc was added
+      i = character(n_agents),     # Origin node in S
+      j = character(n_agents),     # New agent in N \ S
+      stage = integer(n_agents),   # The stage p in which the arc was added
       stringsAsFactors = FALSE
     )
 
     tie_detected <- FALSE
 
     # Prim's Algorithm implementation
-    for (p in 1:n) {
+    for (p in 1:n_agents) {
 
       # Find arc (i, j) with i in S and j in N \ S with minimal cost c_ij
       sub_C <- C_mat[S, N_minus_S, drop = FALSE]
@@ -192,68 +231,61 @@ bird_rule <- function(C, draw = FALSE, which = c(1, 2), titles = TRUE) {
   ## Execution ##
 
   # Standard Bird's Rule (using natural order of N)
-  results <- .compute_bird(C_mat, N)
+  results <- .compute_bird(C_mat, N, n)
   m_cost <- sum(results$allocations) # Total cost m(N_0, C)
-
-  # cat("Bird's Rule Allocation\n")
-  # print(round(results$allocations, 2))
-  # cat("----------\n")
-  # cat(paste0("Total Cost: ", round(m_cost, 2), "\n"))
 
   # Extended Bird's Rule
   if (!results$tie_detected) {
-    # print(round(results$allocations, 2))
+    avg_allocation <- results$allocations
   } else {
-    # message("Multiple minimum cost arcs detected")
-    # message("Optimal tree is not unique and Bird's allocation may vary depending on the selection order")
 
-    # Generate all pi in Pi_N
-    Pi_N <- gtools::permutations(n = n, r = n, v = N)
-    nperms <- nrow(Pi_N)
-    B_pi <- matrix(nrow = nperms, ncol = n, dimnames = list(NULL, N))
-    arcs_pi <- list()
-
-    # Compute allocation for each permutation pi
-    for (k in 1:nperms) {
-      current_pi <- as.character(Pi_N[k, ])
-      results_pi <- .compute_bird(C_mat, current_pi)
-      B_pi[k, ] <- results_pi$allocations
-      arcs_pi[[k]] <- results_pi$arcs
+    # Check if Monte Carlo is actually necessary
+    if (method == "montecarlo" && factorial(n) <= nsim) {
+      message("Warning: n! <= nsim. Consider using method = 'exact' for maximum efficiency")
     }
+
+    # Performance validation
+    if (method == "exact" && n > 10) {
+      message("Warning: n > 10. Consider using method = 'montecarlo' to reduce processing time")
+    }
+
+    if (method == "exact") {
+      # Generate all pi in Pi_N
+      Pi_N <- gtools::permutations(n = n, r = n, v = N)
+      nperms <- nrow(Pi_N)
+
+      results_list <- lapply(1:nperms, function(k) {
+        .compute_bird(C_mat, as.character(Pi_N[k, ]), n)
+      })
+
+      B_pi <- do.call(rbind, lapply(results_list, `[[`, "allocations"))
+      arcs_pi <- lapply(results_list, `[[`, "arcs")
+      perms_output <- Pi_N
+
+    } else {
+
+      nperms <- nsim
+
+      results_list <- lapply(1:nsim, function(k) {
+        current_pi <- sample(N)
+        res <- .compute_bird(C_mat, current_pi, n)
+        list(allocations = res$allocations, arcs = res$arcs, pi = current_pi)
+      })
+
+      B_pi <- do.call(rbind, lapply(results_list, `[[`, "allocations"))
+      arcs_pi <- lapply(results_list, `[[`, "arcs")
+      perms_output <- do.call(rbind, lapply(results_list, `[[`, "pi"))
+    }
+
     # Calculate the average allocation
     avg_allocation <- colMeans(B_pi)
 
-    # cat(paste0("\nExtended Bird's Rule (averaged over ", nperms, " permutations)\n"))
-    # alloc <- rbind(
-    #   "B(id)" = results$allocations,
-    #   "E[B(pi)]" = avg_allocation
-    # )
-
-    # message("Non-unique MCST detected")
-    # print(round(alloc, 2))
-
     perms <- data.frame(
-      pi = apply(Pi_N, 1, paste, collapse = "-"),
+      pi = apply(perms_output, 1, paste, collapse = "-"),
       B_pi,
       row.names = NULL,
       check.names = FALSE
     )
-
-    # avg <- data.frame(
-    #   Order = "AVG",
-    #   t(as.matrix(round(avg_allocation, 2))),
-    #   check.names = FALSE
-    # )
-
-    # if (n <= 3) {
-    #   cat(paste0("Computed ", nperms, " permutations\n"))
-    #   cat("Detailed allocations for each possible ordering:\n")
-    #   print(rbind(perms, avg), row.names = FALSE)
-    #
-    # } else {
-    #   cat(paste0("Computed ", nperms, " permutations (too many to display individually)\n"))
-    #   print(avg, row.names = FALSE)
-    # }
   }
 
 
@@ -261,11 +293,10 @@ bird_rule <- function(C, draw = FALSE, which = c(1, 2), titles = TRUE) {
 
   if (draw) {
 
-    if (is.null(which)) which <- c(1, 2)
-    show_details <- 1 %in% which
-    show_main <- 2 %in% which
+    show_details <- "details" %in% which.plot
+    show_main <- "main" %in% which.plot
 
-    if (results$tie_detected && n <= 3) {
+    if (results$tie_detected && n <= 3 && method == "exact") {
 
       if (show_details) {
         rows <- if(n == 3) 2 else 1
@@ -274,7 +305,7 @@ bird_rule <- function(C, draw = FALSE, which = c(1, 2), titles = TRUE) {
         on.exit(par(old_par), add = TRUE)
 
         for (k in 1:nperms) {
-          order <- paste(Pi_N[k, ], collapse = "-")
+          order <- perms$pi[k]
           current_allocation <- B_pi[k, ]
           .plot_mcstp(C_mat, arcs_pi[[k]], current_allocation,
                       main_title = "", sub_title = paste("Order:", order))
@@ -283,7 +314,7 @@ bird_rule <- function(C, draw = FALSE, which = c(1, 2), titles = TRUE) {
         if (titles) {
           mtext("Detailed Bird Rule Allocations",
                 side = 3, line = 1.5, cex = 1.2, font = 2, outer = TRUE)
-          mtext(paste0("Algorithm: Prim  |  Total Network Cost: ", round(m_cost, 2)),
+          mtext(paste0("Algorithm: Prim  |  Method: exact  |  Total Cost: ", round(m_cost, 2)),
                 side = 3, line = 0.1, cex = 0.7, family = "sans", font = 3,
                 col = "#444444", outer = TRUE)
         }
@@ -298,14 +329,15 @@ bird_rule <- function(C, draw = FALSE, which = c(1, 2), titles = TRUE) {
 
       if (show_main) {
         tit <- if(titles) "Extended Bird Rule Allocation" else ""
-        sub_tit <- if(titles) paste0("Algorithm: Prim  |  Total Network Cost: ", round(m_cost, 2)) else ""
+        sub_tit <- if(titles) paste0("Algorithm: Prim  |  Method: exact  |  Total Cost: ", round(m_cost, 2)) else ""
         .plot_mcstp(C_mat, results$arcs, avg_allocation,
                     main_title = tit, sub_title = sub_tit)
       }
 
     } else {
-      tit <- if(titles) "Bird Rule Allocation" else ""
-      sub_tit <- if(titles) paste0("Algorithm: Prim  |  Total Network Cost: ", round(m_cost, 2)) else ""
+      tit <- if(titles) { if(results$tie_detected) "Extended Bird Rule Allocation" else "Bird Rule Allocation" } else ""
+      lab <- if (method == "exact") {"exact"} else {"Monte Carlo"}
+      sub_tit <- if(titles) paste0("Algorithm: Prim  |  Method: ", lab, "  |  Total Cost: ", round(m_cost, 2)) else ""
       final_alloc <- if(results$tie_detected) avg_allocation else results$allocations
       .plot_mcstp(C_mat, results$arcs, final_alloc,
                   main_title = tit, sub_title = sub_tit)
@@ -336,7 +368,8 @@ bird_rule <- function(C, draw = FALSE, which = c(1, 2), titles = TRUE) {
     ranking = rank_star,
     nperms = if(results$tie_detected) nperms else NULL,
     perms = if(results$tie_detected) perms else NULL,
-    is_unique = !results$tie_detected
+    is_unique = !results$tie_detected,
+    method = method
   )
 
   class(output) <- "mcstp_bird"
@@ -385,7 +418,8 @@ print.mcstp_bird <- function(x, ...) {
 #' \deqn{DK_i(N_0, C) = \min \{x^{p(i)-1}, c_{i^{p(i)} j^{p(i)}}\}.}
 #'
 #' When the minimum cost spanning tree is not unique, the rule is extended by
-#' averaging the allocations over all possible permutations \eqn{\pi \in \Pi_N}:
+#' averaging the allocations over all possible permutations \eqn{\pi \in \Pi_N}
+#' (\code{method = "exact"}):
 #'
 #' \deqn{DK(N_0, C) = \displaystyle{\frac{1}{n!} \sum_{\pi \in \Pi_N} DK^{\pi}(N_0, C)},}
 #'
@@ -393,32 +427,39 @@ print.mcstp_bird <- function(x, ...) {
 #' to \eqn{(N_0, C)} and solving indifferences by selecting the first agent given
 #' by the permutation \eqn{\pi}.
 #'
-#' @inheritParams bird_rule
+#' Alternatively, \code{method = "montecarlo"} estimates the average allocation
+#' through random sampling using \eqn{n_{\text{sim}}} permutations. This is highly useful
+#' when the number of agents is large, as it significantly reduces computation
+#' time while providing a very accurate approximation:
 #'
-#' @note
-#' The function identifies if ties exist in the cost matrix. If the tree is
-#' unique, the standard Dutta-Kar rule is returned. If ties are detected, it
-#' calculates the allocations for all \eqn{n!} permutations to provide the
-#' symmetrical average allocation, as discussed in Bergantiños and
-#' Vidal-Puga (2021).
+#' \deqn{DK(N_0, C) \approx \displaystyle{\dfrac{1}{n_{\text{sim}}} \sum_{k=1}^{n_{\text{sim}}} DK^{\pi_k}(N_0, C)},}
+#'
+#' where \eqn{\pi_k} represents each of the randomly sampled permutations.
+#' For networks with few agents, the exact method is preferred to avoid
+#' potential overestimations.
+#'
+#' @inheritParams mcstBird
+#'
+#' @inheritSection mcstBird Supported formats for \code{C}
 #'
 #' @return A list containing:
 #' \itemize{
 #'   \item \code{dk}: the Dutta-Kar's allocation vector \eqn{DK(N_0, C)} for the natural ordering.
 #'   \item \code{arcs}: a data frame of edges \eqn{(i, j)} in the final tree and the stage at which they were added.
-#'   \item \code{e_dk}: extended Dutta-Kar's allocation (average over permutations).
+#'   \item \code{e_dk}: the extended Dutta-Kar's allocation (average over permutations).
 #'   \item \code{total}: the total cost of the MCST, \eqn{m(N_0, C)}.
 #'   \item \code{percentage}: the share of the total cost allocated to each agent.
 #'   \item \code{ranking}: a ranking of agents by cost (from highest to lowest; ties marked with *).
-#'   \item \code{nperms}: the number of permutations \eqn{n!} computed for the average allocation (if ties exist).
-#'   \item \code{perms}: a data frame with the detailed allocations for all permutations (if ties exist).
+#'   \item \code{nperms}: the number of permutations (\eqn{n!} or \code{nsim}) computed for the average allocation (if ties exist).
+#'   \item \code{perms}: a data frame with the detailed allocations for the computed permutations (if ties exist).
 #'   \item \code{is_unique}: logical; if \code{TRUE}, the MCST is unique.
+#'   \item \code{method}: the method applied for computing the extended rule (\code{"exact"} or \code{"montecarlo"}).
 #' }
 #'
 #' @seealso
-#' \code{\link{bird_rule}} for other rule based on Prim's algorithm.
+#' \code{\link{mcstBird}} for other rule based on Prim's algorithm.
 #'
-#' \code{\link{alloc_rules}} for an overview of the available rules in the package.
+#' \code{\link{mcstRules}} for an overview of the available rules and analysis tools in the package.
 #'
 #' @references
 #' Bergantiños G, Vidal-Puga J (2021) A review of cooperative rules
@@ -430,58 +471,61 @@ print.mcstp_bird <- function(x, ...) {
 #'
 #' @examples
 #' # Simple vector input
-#' dk_rule(c(12, 15, 20, 4, 6, 8), draw = TRUE)
+#' mcstDuttaKar(c(12, 15, 20, 4, 6, 8), draw = TRUE)
 #'
 #' # Input with infinite costs (disconnected nodes)
 #' C_inf <- c(5, 9, Inf, 15, 6, Inf, 7, Inf, Inf, Inf,
 #'            Inf, 8, 7, Inf, Inf, 5, Inf, Inf, 8, 9, 11)
-#' dk_rule(C_inf)
+#' mcstDuttaKar(C_inf)
 #'
 #' # Matrix input with ties
 #' C_mat <- matrix(c(0, 12, 15, 12,
 #'                  12,  0,  4,  6,
 #'                  15,  4,  0,  8,
 #'                  12,  6,  8,  0), byrow = TRUE, ncol = 4)
-#' dk_rule(C_mat, draw = TRUE, which = 2, titles = FALSE)
+#' mcstDuttaKar(C_mat, draw = TRUE, which.plot = "main", titles = FALSE)
 #'
 #' @concept Algorithmic Rules
 #' @concept MCSTP
 #'
 #' @export
 
-dk_rule <- function(C, draw = FALSE, which = c(1, 2), titles = TRUE) {
+mcstDuttaKar <- function(C, draw = FALSE, which.plot = c("main", "details"), titles = TRUE, method = c("exact", "montecarlo"), nsim = 10000) {
 
   # Convert input into a standard cost matrix C for N_0 (agents + source)
   C_mat <- .prepare_matrix(C)
   n <- nrow(C_mat) - 1      # Number of agents n = |N|
   N <- as.character(1:n)    # Set of agents N = {1, ..., n}
 
+  method <- match.arg(method)
+  which.plot <- match.arg(which.plot, several.ok = TRUE)
+
   # Inner function to calculate Prim's algorithm and Dutta-Kar's allocation
   # for a given order pi
-  .compute_dk <- function(C_mat, pi) {
+  .compute_dk <- function(C_mat, pi, n_agents) {
     S <- "0"          # Set of connected nodes. S^0 = {0} is the initial set (source)
     N_minus_S <- pi   # The set N \ S of agents not yet connected
-    allocations <- numeric(n)
+    allocations <- numeric(n_agents)
     names(allocations) <- pi
 
     # Arcs (i, j) of the minimal spanning tree g^n
     arcs <- data.frame(
-      i = character(n),     # Origin node in S
-      j = character(n),     # New agent in N \ S
-      stage = integer(n),   # The stage p in which the arc was added
+      i = character(n_agents),     # Origin node in S
+      j = character(n_agents),     # New agent in N \ S
+      stage = integer(n_agents),   # The stage p in which the arc was added
       stringsAsFactors = FALSE
     )
 
     tie_detected <- FALSE
 
     # Trackers for Dutta-Kar
-    j_p <- character(n)     # Sequence of added agents j^p
-    c_p <- numeric(n)       # Connection costs c_{i^p j^p}
-    x_p <- numeric(n + 1)   # Values x^p
-    x_p[1] <- 0             # Stage 0: x^0 = 0
+    j_p <- character(n_agents)     # Sequence of added agents j^p
+    c_p <- numeric(n_agents)       # Connection costs c_{i^p j^p}
+    x_p <- numeric(n_agents + 1)   # Values x^p
+    x_p[1] <- 0                    # Stage 0: x^0 = 0
 
     # Prim's Algorithm implementation
-    for (p in 1:n) {
+    for (p in 1:n_agents) {
 
       # Find arc (i, j) with i in S and j in N \ S with minimal cost c_ij
       sub_C <- C_mat[S, N_minus_S, drop = FALSE]
@@ -521,17 +565,17 @@ dk_rule <- function(C, draw = FALSE, which = c(1, 2), titles = TRUE) {
 
     # Dutta-Kar's allocation
     # DK_i = min{x^{p(i)-1}, c_{i^{p(i)} j^{p(i)}}}
-    agent_stage <- setNames(1:n, j_p)
-    for (agent in pi) {
-      p_i <- agent_stage[agent]  # Stage in which agent was connected
-      if (p_i < n) {
-        allocations[agent] <- min(x_p[p_i + 1], c_p[p_i + 1])
+    agent_stage <- setNames(1:n_agents, j_p)
 
+    allocations <- sapply(pi, function(agent) {
+      p_i <- agent_stage[agent]  # Stage in which agent was connected
+      if (p_i < n_agents) {
+        return(min(x_p[p_i + 1], c_p[p_i + 1]))
       } else {
         # Last agent pays the final accumulated value x^n
-        allocations[agent] <- x_p[n + 1]
+        return(x_p[n_agents + 1])
       }
-    }
+    })
 
     # Sort the allocation vector by agent index for the final output
     allocations <- allocations[order(as.numeric(names(allocations)))]
@@ -542,69 +586,61 @@ dk_rule <- function(C, draw = FALSE, which = c(1, 2), titles = TRUE) {
   ## Execution ##
 
   # Standard Dutta-Kar's Rule (using natural order of N)
-  results <- .compute_dk(C_mat, N)
-  m_cost <- sum(results$allocations)  # Total cost m(N_0, C)
-
-  # cat("Dutta-Kars's Rule Allocation\n")
-  # print(round(results$allocations, 2))
-  # cat("----------\n")
-  # cat(paste0("Total Cost: ", round(m_cost, 2), "\n"))
+  results <- .compute_dk(C_mat, N, n)
+  m_cost <- sum(results$allocations) # Total cost m(N_0, C)
 
   # Extended Dutta-Kar's Rule
   if (!results$tie_detected) {
-    # print(round(results$allocations, 2))
+    avg_allocation <- results$allocations
   } else {
-    # message("Multiple minimum cost arcs detected")
-    # message("Optimal tree is not unique and Dutta-Kar's allocation may vary depending on the selection order")
 
-    # Generate all pi in Pi_N
-    Pi_N <- gtools::permutations(n = n, r = n, v = N)
-    nperms <- nrow(Pi_N)
-    DK_pi <- matrix(nrow = nperms, ncol = n, dimnames = list(NULL, N))
-    arcs_pi <- list()
+    # Check if Monte Carlo is actually necessary
+    if (method == "montecarlo" && factorial(n) <= nsim) {
+      message("Warning: n! <= nsim. Consider using method = 'exact' for maximum efficiency")
+    }
 
-    # Compute allocation for each permutation pi
-    for (k in 1:nperms) {
-      current_pi <- as.character(Pi_N[k, ])
-      results_pi <- .compute_dk(C_mat, current_pi)
-      DK_pi[k, ] <- results_pi$allocations
-      arcs_pi[[k]] <- results_pi$arcs
+    # Performance validation
+    if (method == "exact" && n > 10) {
+      message("Warning: n > 10. Consider using method = 'montecarlo' to reduce processing time")
+    }
+
+    if (method == "exact") {
+      # Generate all pi in Pi_N
+      Pi_N <- gtools::permutations(n = n, r = n, v = N)
+      nperms <- nrow(Pi_N)
+
+      results_list <- lapply(1:nperms, function(k) {
+        .compute_dk(C_mat, as.character(Pi_N[k, ]), n)
+      })
+
+      DK_pi <- do.call(rbind, lapply(results_list, `[[`, "allocations"))
+      arcs_pi <- lapply(results_list, `[[`, "arcs")
+      perms_output <- Pi_N
+
+    } else {
+
+      nperms <- nsim
+
+      results_list <- lapply(1:nsim, function(k) {
+        current_pi <- sample(N)
+        res <- .compute_dk(C_mat, current_pi, n)
+        list(allocations = res$allocations, arcs = res$arcs, pi = current_pi)
+      })
+
+      DK_pi <- do.call(rbind, lapply(results_list, `[[`, "allocations"))
+      arcs_pi <- lapply(results_list, `[[`, "arcs")
+      perms_output <- do.call(rbind, lapply(results_list, `[[`, "pi"))
     }
 
     # Calculate the average allocation
     avg_allocation <- colMeans(DK_pi)
 
-    # cat(paste0("\nExtended Dutta-Kar's Rule (averaged over ", nperms, " permutations)\n"))
-    # alloc <- rbind(
-    #   "DK(id)" = results$allocations,
-    #   "E[DK(pi)]" = avg_allocation
-    # )
-
-    # message("Non-unique MCST detected")
-    # print(round(alloc, 2))
-
     perms <- data.frame(
-      pi = apply(Pi_N, 1, paste, collapse = "-"),
+      pi = apply(perms_output, 1, paste, collapse = "-"),
       DK_pi,
       row.names = NULL,
       check.names = FALSE
     )
-
-    # avg <- data.frame(
-    #   Order = "AVG",
-    #   t(as.matrix(round(avg_allocation, 2))),
-    #   check.names = FALSE
-    # )
-
-    # if (n <= 3) {
-    #   cat(paste0("Computed ", nperms, " permutations\n"))
-    #   cat("Detailed allocations for each possible ordering:\n")
-    #   print(rbind(perms, avg), row.names = FALSE)
-    #
-    # } else {
-    #   cat(paste0("Computed ", nperms, " permutations (too many to display individually)\n"))
-    #   print(avg, row.names = FALSE)
-    # }
   }
 
 
@@ -612,11 +648,10 @@ dk_rule <- function(C, draw = FALSE, which = c(1, 2), titles = TRUE) {
 
   if (draw) {
 
-    if (is.null(which)) which <- c(1, 2)
-    show_details <- 1 %in% which
-    show_main <- 2 %in% which
+    show_details <- "details" %in% which.plot
+    show_main <- "main" %in% which.plot
 
-    if (results$tie_detected && n <= 3) {
+    if (results$tie_detected && n <= 3 && method == "exact") {
 
       if (show_details) {
         rows <- if(n == 3) 2 else 1
@@ -625,7 +660,7 @@ dk_rule <- function(C, draw = FALSE, which = c(1, 2), titles = TRUE) {
         on.exit(par(old_par), add = TRUE)
 
         for (k in 1:nperms) {
-          order <- paste(Pi_N[k, ], collapse = "-")
+          order <- perms$pi[k]
           current_allocation <- DK_pi[k, ]
           .plot_mcstp(C_mat, arcs_pi[[k]], current_allocation,
                       main_title = "", sub_title = paste("Order:", order))
@@ -634,7 +669,7 @@ dk_rule <- function(C, draw = FALSE, which = c(1, 2), titles = TRUE) {
         if (titles) {
           mtext("Detailed Dutta-Kar Rule Allocations",
                 side = 3, line = 1.5, cex = 1.2, font = 2, outer = TRUE)
-          mtext(paste0("Algorithm: Prim  |  Total Network Cost: ", round(m_cost, 2)),
+          mtext(paste0("Algorithm: Prim  |  Method: exact  |  Total Cost: ", round(m_cost, 2)),
                 side = 3, line = 0.1, cex = 0.7, family = "sans", font = 3,
                 col = "#444444", outer = TRUE)
         }
@@ -649,14 +684,15 @@ dk_rule <- function(C, draw = FALSE, which = c(1, 2), titles = TRUE) {
 
       if (show_main) {
         tit <- if(titles) "Extended Dutta-Kar Rule Allocation" else ""
-        sub_tit <- if(titles) paste0("Algorithm: Prim  |  Total Network Cost: ", round(m_cost, 2)) else ""
+        sub_tit <- if(titles) paste0("Algorithm: Prim  |  Method: exact  |  Total Cost: ", round(m_cost, 2)) else ""
         .plot_mcstp(C_mat, results$arcs, avg_allocation,
                     main_title = tit, sub_title = sub_tit)
       }
 
     } else {
-      tit <- if(titles) "Dutta-Kar Rule Allocation" else ""
-      sub_tit <- if(titles) paste0("Algorithm: Prim  |  Total Network Cost: ", round(m_cost, 2)) else ""
+      tit <- if(titles) { if(results$tie_detected) "Extended Dutta-Kar Rule Allocation" else "Dutta-Kar Rule Allocation" } else ""
+      lab <- if (method == "exact") {"exact"} else {"Monte Carlo"}
+      sub_tit <- if(titles) paste0("Algorithm: Prim  |  Method: ", lab, "  |  Total Cost: ", round(m_cost, 2)) else ""
       final_alloc <- if(results$tie_detected) avg_allocation else results$allocations
       .plot_mcstp(C_mat, results$arcs, final_alloc,
                   main_title = tit, sub_title = sub_tit)
@@ -687,7 +723,8 @@ dk_rule <- function(C, draw = FALSE, which = c(1, 2), titles = TRUE) {
     ranking = rank_star,
     nperms = if(results$tie_detected) nperms else NULL,
     perms = if(results$tie_detected) perms else NULL,
-    is_unique = !results$tie_detected
+    is_unique = !results$tie_detected,
+    method = method
   )
 
   class(output) <- "mcstp_dk"
@@ -735,16 +772,16 @@ print.mcstp_dk <- function(x, ...) {
 #'
 #' \deqn{F_i(N_0, C) = \displaystyle{ \sum_{p=1}^n c_{i^p j^p} \left( o_i(S_i^{p-1}) - o_i(S_i^p) \right)}.}
 #'
-#' @param C a symmetric square matrix or a numeric vector representing the
-#' lower triangle of costs (ordered by columns) among the nodes in \eqn{N_0}.
-#' The first row and column are assumed to be the source (0). Supports \code{Inf}
-#' for disconnected nodes.
+#' @param C cost matrix between nodes. Accepts multiple formats (see
+#' "Supported formats for \code{C}" below).
 #' @param draw logical; if \code{TRUE}, plots the network highlighting an optimal
 #' tree in red, indicating the stage at which each arc is added (in brackets)
 #' and the cost allocated to each agent (in parentheses below the node).
 #' @param titles logical; if \code{TRUE} (default), adds a main title
 #' specifying the allocation rule and a subtitle with the algorithm used
 #' and the total network cost.
+#'
+#' @inheritSection mcstBird Supported formats for \code{C}
 #'
 #' @note
 #' The folk allocation is uniquely determined even when the minimum cost
@@ -763,19 +800,19 @@ print.mcstp_dk <- function(x, ...) {
 #' }
 #'
 #' @seealso
-#' \code{\link{ows_rule}}, \code{\link{pws_rule}} for other
+#' \code{\link{mcstOWShapley}}, \code{\link{mcstPWShapley}} for other
 #' rules based on Kruskal's algorithm.
 #'
-#' \code{\link{boruvka_rule}} for an equivalent rule based on Boruvka's algorithm.
+#' \code{\link{mcstBoruvka}} for an equivalent rule based on Boruvka's algorithm.
 #'
-#' \code{\link{conewise_rule}} with \code{rule = "folk"} for the equivalent
+#' \code{\link{mcstCone}} with \code{rule = "folk"} for the equivalent
 #' implementation based on cone-wise decomposition.
 #'
-#' \code{\link{irred_game}}, \code{\link{opt_game}} for cooperative
+#' \code{\link{mcstGameIrred}}, \code{\link{mcstGameOpt}} for cooperative
 #' games whose Shapley value coincides with the folk solution.
 #'
-#' \code{\link{alloc_rules}} for an
-#' overview of the available rules in the package.
+#' \code{\link{mcstRules}} for an
+#' overview of the available rules and analysis tools in the package.
 #'
 #' @references
 #' Bergantiños G, Vidal-Puga J (2021) A review of cooperative rules
@@ -788,26 +825,26 @@ print.mcstp_dk <- function(x, ...) {
 #'
 #' @examples
 #' # Simple vector input
-#' folk_rule(c(12, 15, 20, 4, 6, 8), draw = TRUE)
+#' mcstFolk(c(12, 15, 20, 4, 6, 8), draw = TRUE)
 #'
 #' # Input with infinite costs (disconnected nodes)
 #' C_inf <- c(5, 9, Inf, 15, 6, Inf, 7, Inf, Inf, Inf,
 #'            Inf, 8, 7, Inf, Inf, 5, Inf, Inf, 8, 9, 11)
-#' folk_rule(C_inf)
+#' mcstFolk(C_inf)
 #'
 #' # Matrix input
 #' C_mat <- matrix(c(0, 12, 15, 12,
 #'                  12,  0,  4,  6,
 #'                  15,  4,  0,  8,
 #'                  12,  6,  8,  0), byrow = TRUE, ncol = 4)
-#' folk_rule(C_mat, draw = TRUE, titles = FALSE)
+#' mcstFolk(C_mat, draw = TRUE, titles = FALSE)
 #'
 #' @concept Algorithmic Rules
 #' @concept MCSTP
 #'
 #' @export
 
-folk_rule <- function(C, draw = FALSE, titles = TRUE) {
+mcstFolk <- function(C, draw = FALSE, titles = TRUE) {
 
   # Convert input into a standard cost matrix C for N_0 (agents + source)
   C_mat <- .prepare_matrix(C)
@@ -815,22 +852,18 @@ folk_rule <- function(C, draw = FALSE, titles = TRUE) {
   N <- as.character(1:n)    # Set of agents N = {1, ..., n}
 
   # Inner function to calculate Kruskal's algorithm and folk allocation
-  .compute_folk <- function(C_mat) {
-    N_0 <- c("0", N)
+  .compute_folk <- function(C_mat, n_agents, N_names) {
+    N_0 <- c("0", N_names) # Set of nodes N_0 = N U {0}
 
     # Identify all possible arcs (i, j) and their costs c_ij
     # A^0(C) = {(i,j) | i,j in N_0, i != j}
-    A_0 <- data.frame(i = character(), j = character(),
-                      cost = numeric(), stringsAsFactors = FALSE)
-
-    for (k in 1:(length(N_0) - 1)) {
-      for (l in (k + 1):length(N_0)) {
-        i <- N_0[k]
-        j <- N_0[l]
-        A_0 <- rbind(A_0, data.frame(i = i, j = j, cost = C_mat[i, j],
-                                     stringsAsFactors = FALSE))
-      }
-    }
+    pairs <- combn(N_0, 2)
+    A_0 <- data.frame(
+      i = pairs[1, ],
+      j = pairs[2, ],
+      cost = apply(pairs, 2, function(x) C_mat[x[1], x[2]]),
+      stringsAsFactors = FALSE
+    )
 
     # Sort arcs by cost
     A_0 <- A_0[order(A_0$cost), ]
@@ -841,12 +874,12 @@ folk_rule <- function(C, draw = FALSE, titles = TRUE) {
     P <- lapply(N_0, function(x) c(x))
     names(P) <- N_0
 
-    allocations <- numeric(n)
-    names(allocations) <- N
+    allocations <- numeric(n_agents)
+    names(allocations) <- N_names
 
     # Arcs selected for the minimum spanning tree g^|N|
-    g_N <- data.frame(i = character(n), j = character(n),
-                      stage = integer(n), stringsAsFactors = FALSE)
+    g_N <- data.frame(i = character(n_agents), j = character(n_agents),
+                      stage = integer(n_agents), stringsAsFactors = FALSE)
 
     p <- 1 # Stage counter
 
@@ -873,20 +906,15 @@ folk_rule <- function(C, draw = FALSE, titles = TRUE) {
         size_Sj <- length(S_j)
         size_total <- size_Si + size_Sj
 
-        if (!source_in_i && !source_in_j) {
+        if (!source_in_i && !source_in_j) { # Both groups are not connected to the source
+          allocations[S_i] <- allocations[S_i] + c_p * ((1/size_Si) - (1/size_total))
+          allocations[S_j] <- allocations[S_j] + c_p * ((1/size_Sj) - (1/size_total))
 
-          # Both groups are not connected to the source
-          for (agent in S_i) allocations[agent] <- allocations[agent] + c_p * ((1/size_Si) - (1/size_total))
-          for (agent in S_j) allocations[agent] <- allocations[agent] + c_p * ((1/size_Sj) - (1/size_total))
+        } else if (source_in_i && !source_in_j) { # S_i has the source
+          allocations[S_j] <- allocations[S_j] + c_p * (1/size_Sj)
 
-        } else if (source_in_i && !source_in_j) {
-
-          # S_i has the source
-          for (agent in S_j) allocations[agent] <- allocations[agent] + c_p * (1/size_Sj - 0)
-
-        } else if (!source_in_i && source_in_j) {
-          # S_j has the source
-          for (agent in S_i) allocations[agent] <- allocations[agent] + c_p * (1/size_Si - 0)
+        } else if (!source_in_i && source_in_j) { # S_j has the source
+          allocations[S_i] <- allocations[S_i] + c_p * (1/size_Si)
         }
 
         # Update sets for the next stage p+1
@@ -899,7 +927,7 @@ folk_rule <- function(C, draw = FALSE, titles = TRUE) {
       }
 
       # Process is completed in |N| stages
-      if (p > n) break
+      if (p > n_agents) break
     }
 
     # Sort the allocation vector by agent index for the final output
@@ -910,21 +938,8 @@ folk_rule <- function(C, draw = FALSE, titles = TRUE) {
 
   ## Execution ##
 
-  results <- .compute_folk(C_mat)
+  results <- .compute_folk(C_mat, n, N)
   m_cost <- sum(results$allocations) # Total cost m(N_0, C)
-
-  # cat("Folk Rule Allocation\n")
-  # print(round(results$allocations, 2))
-  # cat("----------\n")
-  # cat(paste0("Total Cost: ", round(m_cost, 2), "\n"))
-
-
-  # if (!results$tie_detected) {
-  #   message("Minimum cost spanning tree is unique")
-  # } else {
-  #   message("Multiple minimum cost arcs detected")
-  #   message("Optimal tree is not unique but Folk's allocation is unaffected by the chosen optimal tree")
-  # }
 
 
   ## Visualization ##
@@ -932,7 +947,7 @@ folk_rule <- function(C, draw = FALSE, titles = TRUE) {
   if (draw) {
 
     tit <- if(titles) "Folk Rule Allocation" else ""
-    sub_tit <- if(titles) paste0("Algorithm: Kruskal  |  Total Network Cost: ", round(m_cost, 2)) else ""
+    sub_tit <- if(titles) paste0("Algorithm: Kruskal  |  Total Cost: ", round(m_cost, 2)) else ""
     .plot_mcstp(C_mat, results$arcs, results$allocations,
                 main_title = tit, sub_title = sub_tit)
   }
@@ -998,9 +1013,11 @@ print.mcstp_folk <- function(x, ...) {
 #'
 #' \deqn{f^{\varrho^{ow}}_i(N_0, C) = \displaystyle{ \sum_{p=1}^n c_{i^p j^p} \left( o_i(S_i^{p-1}) - o_i(S_i^p) \right)}.}
 #'
-#' @inheritParams folk_rule
+#' @inheritParams mcstFolk
 #' @param weights a numeric vector of strictly positive weights for each agent in \eqn{N}.
 #' The length of the vector must match the number of agents.
+#'
+#' @inheritSection mcstBird Supported formats for \code{C}
 #'
 #' @note
 #' The optimistic weighted Shapley allocation is uniquely determined even when the minimum
@@ -1009,7 +1026,7 @@ print.mcstp_folk <- function(x, ...) {
 #' selection in Kruskal's algorithm yields the same cost distribution.
 #'
 #' Furthermore, when all agents share the same weight, the optimistic weighted Shapley
-#' allocation is mathematically equivalent to the \code{\link{folk_rule}}.
+#' allocation is mathematically equivalent to the \code{\link{mcstFolk}}.
 #'
 #' @return A list containing:
 #' \itemize{
@@ -1023,14 +1040,14 @@ print.mcstp_folk <- function(x, ...) {
 #' }
 #'
 #' @seealso
-#' \code{\link{folk_rule}}, \code{\link{pws_rule}} for other
+#' \code{\link{mcstFolk}}, \code{\link{mcstPWShapley}} for other
 #' rules based on Kruskal's algorithm.
 #'
-#' \code{\link{conewise_rule}} with \code{rule = "ows"} for the equivalent
+#' \code{\link{mcstCone}} with \code{rule = "owshapley"} for the equivalent
 #' implementation based on cone-wise decomposition.
 #'
-#' \code{\link{alloc_rules}} for an
-#' overview of the available rules in the package.
+#' \code{\link{mcstRules}} for an
+#' overview of the available rules and analysis tools in the package.
 #'
 #' @references
 #' Bergantiños G, Lorenzo-Freire S (2008a) A characterization of optimistic
@@ -1047,21 +1064,21 @@ print.mcstp_folk <- function(x, ...) {
 #'
 #' @examples
 #' # Simple vector input with custom weights
-#' ows_rule(c(12, 15, 20, 4, 6, 8), weights = c(2, 1, 1))
+#' mcstOWShapley(c(12, 15, 20, 4, 6, 8), weights = c(2, 1, 1))
 #'
 #' # Matrix input with equal weights (equivalent to folk rule)
 #' C_mat <- matrix(c(0, 12, 15, 12,
 #'                  12,  0,  4,  6,
 #'                  15,  4,  0,  8,
 #'                  12,  6,  8,  0), byrow = TRUE, ncol = 4)
-#' ows_rule(C_mat, weights = rep(1,3), draw = TRUE, titles = FALSE)
+#' mcstOWShapley(C_mat, weights = rep(1,3), draw = TRUE, titles = FALSE)
 #'
 #' @concept Algorithmic Rules
 #' @concept MCSTP
 #'
 #' @export
 
-ows_rule <- function(C, weights, draw = FALSE, titles = TRUE) {
+mcstOWShapley <- function(C, weights, draw = FALSE, titles = TRUE) {
 
   # Convert input into a standard cost matrix C for N_0 (agents + source)
   C_mat <- .prepare_matrix(C)
@@ -1076,27 +1093,19 @@ ows_rule <- function(C, weights, draw = FALSE, titles = TRUE) {
     names(weights) <- N
   }
 
-  # if (all(weights == weights[1])) {
-  #   message("All weights are equal: optimistic weighted Shapley's allocation is equivalent to the folk allocation")
-  # }
-
   # Inner function to calculate Kruskal's algorithm and Optimistic weighted Shapley's allocation
-  .compute_ows <- function(C_mat, w) {
-    N_0 <- c("0", N)
+  .compute_ows <- function(C_mat, w, n_agents, N_names) {
+    N_0 <- c("0", N_names) # Set of nodes N_0 = N U {0}
 
     # Identify all possible arcs (i, j) and their costs c_ij
     # A^0(C) = {(i,j) | i,j in N_0, i != j}
-    A_0 <- data.frame(i = character(), j = character(),
-                      cost = numeric(), stringsAsFactors = FALSE)
-
-    for (k in 1:(length(N_0) - 1)) {
-      for (l in (k + 1):length(N_0)) {
-        i <- N_0[k]
-        j <- N_0[l]
-        A_0 <- rbind(A_0, data.frame(i = i, j = j, cost = C_mat[i, j],
-                                     stringsAsFactors = FALSE))
-      }
-    }
+    pairs <- combn(N_0, 2)
+    A_0 <- data.frame(
+      i = pairs[1, ],
+      j = pairs[2, ],
+      cost = apply(pairs, 2, function(x) C_mat[x[1], x[2]]),
+      stringsAsFactors = FALSE
+    )
 
     # Sort arcs by cost
     A_0 <- A_0[order(A_0$cost), ]
@@ -1107,12 +1116,12 @@ ows_rule <- function(C, weights, draw = FALSE, titles = TRUE) {
     P <- lapply(N_0, function(x) c(x))
     names(P) <- N_0
 
-    allocations <- numeric(n)
-    names(allocations) <- N
+    allocations <- numeric(n_agents)
+    names(allocations) <- N_names
 
     # Arcs selected for the minimum spanning tree g^|N|
-    g_N <- data.frame(i = character(n), j = character(n),
-                      stage = integer(n), stringsAsFactors = FALSE)
+    g_N <- data.frame(i = character(n_agents), j = character(n_agents),
+                      stage = integer(n_agents), stringsAsFactors = FALSE)
 
     p <- 1 # Stage counter
 
@@ -1135,25 +1144,22 @@ ows_rule <- function(C, weights, draw = FALSE, titles = TRUE) {
 
 
         # Optimistic Weighted Shapley's allocation: o_i(S) = w_i / sum(w_j for j in S)
-        W_i <- sum(w[S_i[S_i != "0"]])
-        W_j <- sum(w[S_j[S_j != "0"]])
+        S_i_agents <- S_i[S_i != "0"]
+        S_j_agents <- S_j[S_j != "0"]
+
+        W_i <- sum(w[S_i_agents])
+        W_j <- sum(w[S_j_agents])
         W_total <- W_i + W_j
 
-        if (!source_in_i && !source_in_j) {
+        if (!source_in_i && !source_in_j) { # Both groups are not connected to the source
+          allocations[S_i_agents] <- allocations[S_i_agents] + c_p * w[S_i_agents] * ((1/W_i) - (1/W_total))
+          allocations[S_j_agents] <- allocations[S_j_agents] + c_p * w[S_j_agents] * ((1/W_j) - (1/W_total))
 
-          # Both groups are not connected to the source
-          for (agent in S_i[S_i != "0"]) allocations[agent] <- allocations[agent] + c_p * w[agent] * ((1/W_i) - (1/W_total))
-          for (agent in S_j[S_j != "0"]) allocations[agent] <- allocations[agent] + c_p * w[agent] * ((1/W_j) - (1/W_total))
+        } else if (source_in_i && !source_in_j) { # S_i has the source
+          allocations[S_j_agents] <- allocations[S_j_agents] + c_p * (w[S_j_agents] / W_j)
 
-        } else if (source_in_i && !source_in_j) {
-
-          # S_i has the source
-          for (agent in S_j[S_j != "0"]) allocations[agent] <- allocations[agent] + c_p * (w[agent] / W_j)
-
-        } else if (!source_in_i && source_in_j) {
-
-          # S_j has the source
-          for (agent in S_i[S_i != "0"]) allocations[agent] <- allocations[agent] + c_p * (w[agent] / W_i)
+        } else if (!source_in_i && source_in_j) { # S_j has the source
+          allocations[S_i_agents] <- allocations[S_i_agents] + c_p * (w[S_i_agents] / W_i)
         }
 
         # Update sets for the next stage p+1
@@ -1166,7 +1172,7 @@ ows_rule <- function(C, weights, draw = FALSE, titles = TRUE) {
       }
 
       # Process is completed in |N| stages
-      if (p > n) break
+      if (p > n_agents) break
     }
 
     # Sort the allocation vector by agent index for the final output
@@ -1177,21 +1183,8 @@ ows_rule <- function(C, weights, draw = FALSE, titles = TRUE) {
 
   ## Execution ##
 
-  results <- .compute_ows(C_mat, weights)
-  m_cost <- sum(results$allocations)  # Total cost m(N_0, C)
-
-  # cat("Optimistic Weighted Shapley's Rule Allocation\n")
-  # cat(paste0("Weights: ", paste(weights, collapse = " "), "\n"))
-  # print(round(results$allocations, 2))
-  # cat("----------\n")
-  # cat(paste0("Total Cost: ", round(m_cost, 2), "\n"))
-
-  # if (!results$tie_detected) {
-  #   message("Minimum cost spanning tree is unique")
-  # } else {
-  #   message("Multiple minimum cost arcs detected")
-  #   message("Optimal tree is not unique but optimistic weighted Shapley's's allocation is unaffected by the chosen optimal tree")
-  # }
+  results <- .compute_ows(C_mat, weights, n, N)
+  m_cost <- sum(results$allocations) # Total cost m(N_0, C)
 
 
   ## Visualization ##
@@ -1199,7 +1192,7 @@ ows_rule <- function(C, weights, draw = FALSE, titles = TRUE) {
   if (draw) {
 
     tit <- if(titles) "Optimistic Weighted Shapley Rule Allocation" else ""
-    sub_tit <- if(titles) paste0("Algorithm: Kruskal  |  Total Network Cost: ", round(m_cost, 2)) else ""
+    sub_tit <- if(titles) paste0("Algorithm: Kruskal  |  Total Cost: ", round(m_cost, 2)) else ""
     .plot_mcstp(C_mat, results$arcs, results$allocations,
                 main_title = tit, sub_title = sub_tit)
   }
@@ -1268,7 +1261,9 @@ print.mcstp_ows <- function(x, ...) {
 #'
 #' \deqn{f^{\varrho^{pw}}_i(N_0, C) = \displaystyle{ \sum_{p=1}^n c_{i^p j^p} \left( o_i(S_i^{p-1}) - o_i(S_i^p) \right)}.}
 #'
-#' @inheritParams ows_rule
+#' @inheritParams mcstOWShapley
+#'
+#' @inheritSection mcstBird Supported formats for \code{C}
 #'
 #' @note
 #' The pessimistic weighted Shapley allocation is uniquely determined even when the minimum
@@ -1277,7 +1272,7 @@ print.mcstp_ows <- function(x, ...) {
 #' selection in Kruskal's algorithm yields the same cost distribution.
 #'
 #' Furthermore, when all agents share the same weight, the pessimistic weighted Shapley
-#' allocation is mathematically equivalent to the \code{\link{folk_rule}}.
+#' allocation is mathematically equivalent to the \code{\link{mcstFolk}}.
 #'
 #' @return A list containing:
 #' \itemize{
@@ -1291,11 +1286,11 @@ print.mcstp_ows <- function(x, ...) {
 #' }
 #'
 #' @seealso
-#' \code{\link{folk_rule}}, \code{\link{ows_rule}} for other
+#' \code{\link{mcstFolk}}, \code{\link{mcstOWShapley}} for other
 #' rules based on Kruskal's algorithm.
 #'
-#' \code{\link{alloc_rules}} for an
-#' overview of the available rules in the package.
+#' \code{\link{mcstRules}} for an
+#' overview of the available rules and analysis tools in the package.
 #'
 #' @references
 #' Bergantiños G, Vidal-Puga J (2021) A review of cooperative rules
@@ -1307,21 +1302,21 @@ print.mcstp_ows <- function(x, ...) {
 #'
 #' @examples
 #' # Simple vector input with custom weights
-#' pws_rule(c(12, 15, 20, 4, 6, 8), weights = c(2, 1, 1))
+#' mcstPWShapley(c(12, 15, 20, 4, 6, 8), weights = c(2, 1, 1))
 #'
 #' # Matrix input with equal weights (equivalent to folk rule)
 #' C_mat <- matrix(c(0, 12, 15, 12,
 #'                  12,  0,  4,  6,
 #'                  15,  4,  0,  8,
 #'                  12,  6,  8,  0), byrow = TRUE, ncol = 4)
-#' pws_rule(C_mat, weights = rep(1,3), draw = TRUE, titles = FALSE)
+#' mcstPWShapley(C_mat, weights = rep(1,3), draw = TRUE, titles = FALSE)
 #'
 #' @concept Algorithmic Rules
 #' @concept MCSTP
 #'
 #' @export
 
-pws_rule <- function(C, weights, draw = FALSE, titles = TRUE) {
+mcstPWShapley <- function(C, weights, draw = FALSE, titles = TRUE) {
 
   # Convert input into a standard cost matrix C for N_0 (agents + source)
   C_mat <- .prepare_matrix(C)
@@ -1336,13 +1331,9 @@ pws_rule <- function(C, weights, draw = FALSE, titles = TRUE) {
     names(weights) <- N
   }
 
-  # if (all(weights == weights[1])) {
-  #   message("All weights are equal: pessimistic weighted Shapley's allocation is equivalent to the folk allocation")
-  # }
-
   # Inner function to calculate Kruskal's algorithm and Pessimistic weighted Shapley's allocation
-  .compute_pws <- function(C_mat, w) {
-    N_0 <- c("0", N)
+  .compute_pws <- function(C_mat, w, n_agents, N_names) {
+    N_0 <- c("0", N_names) # Set of nodes N_0 = N U {0}
 
     # Helper function for pessimistic obligation o_i(S)
     .compute_o_pess <- function(i, S, w_vec) {
@@ -1365,17 +1356,13 @@ pws_rule <- function(C, weights, draw = FALSE, titles = TRUE) {
 
     # Identify all possible arcs (i, j) and their costs c_ij
     # A^0(C) = {(i,j) | i,j in N_0, i != j}
-    A_0 <- data.frame(i = character(), j = character(),
-                      cost = numeric(), stringsAsFactors = FALSE)
-
-    for (k in 1:(length(N_0) - 1)) {
-      for (l in (k + 1):length(N_0)) {
-        i <- N_0[k]
-        j <- N_0[l]
-        A_0 <- rbind(A_0, data.frame(i = i, j = j, cost = C_mat[i, j],
-                                     stringsAsFactors = FALSE))
-      }
-    }
+    pairs <- combn(N_0, 2)
+    A_0 <- data.frame(
+      i = pairs[1, ],
+      j = pairs[2, ],
+      cost = apply(pairs, 2, function(x) C_mat[x[1], x[2]]),
+      stringsAsFactors = FALSE
+    )
 
     # Sort arcs by cost
     A_0 <- A_0[order(A_0$cost), ]
@@ -1386,12 +1373,12 @@ pws_rule <- function(C, weights, draw = FALSE, titles = TRUE) {
     P <- lapply(N_0, function(x) c(x))
     names(P) <- N_0
 
-    allocations <- numeric(n)
-    names(allocations) <- N
+    allocations <- numeric(n_agents)
+    names(allocations) <- N_names
 
     # Arcs selected for the minimum spanning tree g^|N|
-    g_N <- data.frame(i = character(n), j = character(n),
-                      stage = integer(n), stringsAsFactors = FALSE)
+    g_N <- data.frame(i = character(n_agents), j = character(n_agents),
+                      stage = integer(n_agents), stringsAsFactors = FALSE)
 
     p <- 1 # Stage counter
 
@@ -1417,35 +1404,22 @@ pws_rule <- function(C, weights, draw = FALSE, titles = TRUE) {
         agents_j <- S_j[S_j != "0"]
         agents_union <- c(agents_i, agents_j)
 
-        if (!source_in_i && !source_in_j) {
+        if (!source_in_i && !source_in_j) { # Both groups are not connected to the source
+          o_old_i <- sapply(agents_i, .compute_o_pess, S = agents_i, w_vec = w)
+          o_new_i <- sapply(agents_i, .compute_o_pess, S = agents_union, w_vec = w)
+          allocations[agents_i] <- allocations[agents_i] + c_p * (o_old_i - o_new_i)
 
-          # Both groups are not connected to the source
-          for (agent in agents_i) {
-            o_old <- .compute_o_pess(agent, agents_i, w)
-            o_new <- .compute_o_pess(agent, agents_union, w)
-            allocations[agent] <- allocations[agent] + c_p * (o_old - o_new)
-          }
-          for (agent in agents_j) {
-            o_old <- .compute_o_pess(agent, agents_j, w)
-            o_new <- .compute_o_pess(agent, agents_union, w)
-            allocations[agent] <- allocations[agent] + c_p * (o_old - o_new)
-          }
+          o_old_j <- sapply(agents_j, .compute_o_pess, S = agents_j, w_vec = w)
+          o_new_j <- sapply(agents_j, .compute_o_pess, S = agents_union, w_vec = w)
+          allocations[agents_j] <- allocations[agents_j] + c_p * (o_old_j - o_new_j)
 
-        } else if (source_in_i && !source_in_j) {
+        } else if (source_in_i && !source_in_j) { # S_i has the source
+          o_old_j <- sapply(agents_j, .compute_o_pess, S = agents_j, w_vec = w)
+          allocations[agents_j] <- allocations[agents_j] + c_p * o_old_j
 
-          # S_i has the source
-          for (agent in agents_j) {
-            o_old <- .compute_o_pess(agent, agents_j, w)
-            allocations[agent] <- allocations[agent] + c_p * (o_old - 0)
-          }
-
-        } else if (!source_in_i && source_in_j) {
-
-          # S_j has the source
-          for (agent in agents_i) {
-            o_old <- .compute_o_pess(agent, agents_i, w)
-            allocations[agent] <- allocations[agent] + c_p * (o_old - 0)
-          }
+        } else if (!source_in_i && source_in_j) { # S_j has the source
+          o_old_i <- sapply(agents_i, .compute_o_pess, S = agents_i, w_vec = w)
+          allocations[agents_i] <- allocations[agents_i] + c_p * o_old_i
         }
 
         # Update sets for the next stage p+1
@@ -1458,7 +1432,7 @@ pws_rule <- function(C, weights, draw = FALSE, titles = TRUE) {
       }
 
       # Process is completed in |N| stages
-      if (p > n) break
+      if (p > n_agents) break
     }
 
     # Sort the allocation vector by agent index for the final output
@@ -1469,21 +1443,8 @@ pws_rule <- function(C, weights, draw = FALSE, titles = TRUE) {
 
   ## Execution ##
 
-  results <- .compute_pws(C_mat, weights)
-  m_cost <- sum(results$allocations)  # Total cost m(N_0, C)
-
-  # cat("Pessimistic Weighted Shapley's Rule Allocation\n")
-  # cat(paste0("Weights: ", paste(weights, collapse = " "), "\n"))
-  # print(round(results$allocations, 2))
-  # cat("----------\n")
-  # cat(paste0("Total Cost: ", round(m_cost, 2), "\n"))
-
-  # if (!results$tie_detected) {
-  #   message("Minimum cost spanning tree is unique")
-  # } else {
-  #   message("Multiple minimum cost arcs detected")
-  #   message("Optimal tree is not unique but pessimistic weighted Shapley's's allocation is unaffected")
-  # }
+  results <- .compute_pws(C_mat, weights, n, N)
+  m_cost <- sum(results$allocations) # Total cost m(N_0, C)
 
 
   ## Visualization ##
@@ -1491,7 +1452,7 @@ pws_rule <- function(C, weights, draw = FALSE, titles = TRUE) {
   if (draw) {
 
     tit <- if(titles) "Pessimistic Weighted Shapley Rule Allocation" else ""
-    sub_tit <- if(titles) paste0("Algorithm: Kruskal  |  Total Network Cost: ", round(m_cost, 2)) else ""
+    sub_tit <- if(titles) paste0("Algorithm: Kruskal  |  Total Cost: ", round(m_cost, 2)) else ""
     .plot_mcstp(C_mat, results$arcs, results$allocations,
                 main_title = tit, sub_title = sub_tit)
   }
@@ -1566,7 +1527,9 @@ print.mcstp_pws <- function(x, ...) {
 #'
 #' \deqn{\beta_i^{\pi}(N_0, C) = \displaystyle{\sum_{s=1}^\gamma f_i^s.}}
 #'
-#' @inheritParams folk_rule
+#' @inheritParams mcstFolk
+#'
+#' @inheritSection mcstBird Supported formats for \code{C}
 #'
 #' @note
 #' Boruvka's allocation is uniquely determined even when the minimum cost
@@ -1576,7 +1539,7 @@ print.mcstp_pws <- function(x, ...) {
 #'
 #' Furthermore, as demonstrated by Bergantiños and Vidal-Puga (2011), for any
 #' order \eqn{\pi} used in the algorithm, Boruvka's allocation is
-#' equivalent to the \code{\link{folk_rule}}.
+#' equivalent to the \code{\link{mcstFolk}}.
 #'
 #' @return A list containing:
 #' \itemize{
@@ -1589,9 +1552,9 @@ print.mcstp_pws <- function(x, ...) {
 #' }
 #'
 #' @seealso
-#' \code{\link{folk_rule}} for an equivalent rule based on Kruskal's algorithm.
+#' \code{\link{mcstFolk}} for an equivalent rule based on Kruskal's algorithm.
 #'
-#' \code{\link{alloc_rules}} for an overview of the available rules in the package.
+#' \code{\link{mcstRules}} for an overview of the available rules and analysis tools in the package.
 #'
 #' @references
 #' Bergantiños G, Vidal-Puga J (2011) The folk solution and Boruvka’s algorithm
@@ -1603,48 +1566,44 @@ print.mcstp_pws <- function(x, ...) {
 #'
 #' @examples
 #' # Simple vector input
-#' boruvka_rule(c(12, 15, 20, 4, 6, 8), draw = TRUE)
+#' mcstBoruvka(c(12, 15, 20, 4, 6, 8), draw = TRUE)
 #'
 #' # Input with infinite costs (disconnected nodes)
 #' C_inf <- c(5, 9, Inf, 15, 6, Inf, 7, Inf, Inf, Inf,
 #'            Inf, 8, 7, Inf, Inf, 5, Inf, Inf, 8, 9, 11)
-#' boruvka_rule(C_inf)
+#' mcstBoruvka(C_inf)
 #'
 #' # Matrix input
 #' C_mat <- matrix(c(0, 12, 15, 12,
 #'                  12,  0,  4,  6,
 #'                  15,  4,  0,  8,
 #'                  12,  6,  8,  0), byrow = TRUE, ncol = 4)
-#' boruvka_rule(C_mat, draw = TRUE, titles = FALSE)
+#' mcstBoruvka(C_mat, draw = TRUE, titles = FALSE)
 #'
 #' @concept Algorithmic Rules
 #' @concept MCSTP
 #'
 #' @export
 
-boruvka_rule <- function(C, draw = FALSE, titles = TRUE) {
+mcstBoruvka <- function(C, draw = FALSE, titles = TRUE) {
 
   # Convert input into a standard cost matrix C for N_0 (agents + source)
   C_mat <- .prepare_matrix(C)
   n <- nrow(C_mat) - 1      # Number of agents n = |N|
   N <- as.character(1:n)    # Set of agents N = {1, ..., n}
-  N_0 <- c("0", N)          # Set of nodes N_0 = N U {0}
 
   # Inner function to calculate Boruvka's algorithm and allocation
-  .compute_boruvka <- function(C_mat) {
+  .compute_boruvka <- function(C_mat, n_agents, N_names) {
+    N_0 <- c("0", N_names) # Set of nodes N_0 = N U {0}
 
     # Identify all possible arcs (i, j) and their costs c_ij
-    A_0 <- data.frame(i = character(), j = character(),
-                      cost = numeric(), stringsAsFactors = FALSE)
-
-    for (k in 1:(length(N_0) - 1)) {
-      for (l in (k + 1):length(N_0)) {
-        i <- N_0[k]
-        j <- N_0[l]
-        A_0 <- rbind(A_0, data.frame(i = i, j = j, cost = C_mat[i, j],
-                                     stringsAsFactors = FALSE))
-      }
-    }
+    pairs <- combn(N_0, 2)
+    A_0 <- data.frame(
+      i = pairs[1, ],
+      j = pairs[2, ],
+      cost = apply(pairs, 2, function(x) C_mat[x[1], x[2]]),
+      stringsAsFactors = FALSE
+    )
 
     # Sort arcs by cost
     A_0 <- A_0[order(A_0$cost, A_0$i, A_0$j), ]
@@ -1761,20 +1720,8 @@ boruvka_rule <- function(C, draw = FALSE, titles = TRUE) {
 
   ## Execution ##
 
-  results <- .compute_boruvka(C_mat)
+  results <- .compute_boruvka(C_mat, n, N)
   m_cost <- sum(results$allocations) # Total cost m(N_0, C)
-
-  # cat("Boruvka's Rule Allocation\n")
-  # print(round(results$allocations, 2))
-  # cat("----------\n")
-  # cat(paste0("Total Cost: ", round(m_cost, 2), "\n"))
-
-  # if (!results$tie_detected) {
-  #   message("Minimum cost spanning tree is unique")
-  # } else {
-  #   message("Multiple minimum cost arcs detected")
-  #   message("Optimal tree is not unique but Boruvka's allocation is unaffected by the chosen optimal tree")
-  # }
 
 
   ## Visualization ##
@@ -1782,7 +1729,7 @@ boruvka_rule <- function(C, draw = FALSE, titles = TRUE) {
   if (draw) {
 
     tit <- if(titles) "Boruvka Rule Allocation" else ""
-    sub_tit <- if(titles) paste0("Algorithm: Boruvka  |  Total Network Cost: ", round(m_cost, 2)) else ""
+    sub_tit <- if(titles) paste0("Algorithm: Boruvka  |  Total Cost: ", round(m_cost, 2)) else ""
     .plot_mcstp(C_mat, results$arcs, results$allocations,
                 main_title = tit, sub_title = sub_tit)
   }
@@ -1853,7 +1800,7 @@ print.mcstp_boruvka <- function(x, ...) {
 #'    0 & \text{otherwise}.
 #'    \end{cases}}
 #'
-#'   \item Optimistic weighted Shapley rule (\code{"ows"}): \deqn{f^{\varrho^{ow}}(N_0, C^q) = \begin{cases}
+#'   \item Optimistic weighted Shapley rule (\code{"owshapley"}): \deqn{f^{\varrho^{ow}}(N_0, C^q) = \begin{cases}
 #'    \dfrac{w_i}{\sum_{j \in S_i^q} w_j} & \text{if } 0 \notin S_i^q \\
 #'    0 & \text{otherwise}.
 #'    \end{cases}}
@@ -1876,12 +1823,14 @@ print.mcstp_boruvka <- function(x, ...) {
 #'    i.e., agents attaining the maximum value of \eqn{\delta_j} share the cost equally.
 #' }
 #'
-#' @inheritParams folk_rule
+#' @inheritParams mcstFolk
 #' @param rule a character string indicating the rule \eqn{R} to be applied to the elementary MCSTPs.
-#' One of \code{"folk"} (default), \code{"ows"}, or \code{"bogomolnaia"}.
+#' One of \code{"folk"} (default), \code{"owshapley"}, or \code{"bogomolnaia"}.
 #' @param weights a numeric vector of strictly positive weights for each agent in \eqn{N}.
-#' The length of the vector must match the number of agents; only if \code{rule = "ows"}.
+#' The length of the vector must match the number of agents; only if \code{rule = "owshapley"}.
 #' @param lambda a non-negative numeric parameter (\code{1} by default); only if \code{rule = "bogomolnaia"}.
+#'
+#' @inheritSection mcstBird Supported formats for \code{C}
 #'
 #' @return A list containing:
 #' \itemize{
@@ -1891,23 +1840,23 @@ print.mcstp_boruvka <- function(x, ...) {
 #'   \item \code{percentage}: the share of the total cost allocated to each agent.
 #'   \item \code{ranking}: a ranking of agents by cost (from highest to lowest; ties marked with *).
 #'   \item \code{decomposition}: a matrix showing the allocation at each cost level of the decomposition.
-#'   \item \code{weights}: the weight vector used for the allocation; only if \code{rule = "ows"}.
+#'   \item \code{weights}: the weight vector used for the allocation; only if \code{rule = "owshapley"}.
 #'   \item \code{lambda}: the lambda value used for the allocation; only if \code{rule = "bogomolnaia"}.
 #' }
 #'
 #' @note
 #' This function focuses on the analytical and numerical decomposition of the cost
 #' allocation. For graphical representations, use the direct rule functions
-#' (e.g., \code{\link{folk_rule}}).
+#' (e.g., \code{\link{mcstFolk}}).
 #'
 #' The allocation for \code{rule = "folk"} is also obtained when all weights are
-#' equal in \code{rule = "ows"}, or when \eqn{\lambda = 1} in
+#' equal in \code{rule = "owshapley"}, or when \eqn{\lambda = 1} in
 #' \code{rule = "bogomolnaia"}.
 #'
 #' @seealso
-#' \code{\link{folk_rule}}, \code{\link{ows_rule}} for direct implementations of these rules.
+#' \code{\link{mcstFolk}}, \code{\link{mcstOWShapley}} for direct implementations of these rules.
 #'
-#' \code{\link{alloc_rules}} for an overview of the available rules in the package.
+#' \code{\link{mcstRules}} for an overview of the available rules and analysis tools in the package.
 #'
 #' @references
 #' Bergantiños G, Vidal-Puga J (2021) A review of cooperative rules
@@ -1921,61 +1870,50 @@ print.mcstp_boruvka <- function(x, ...) {
 #' C <- c(12, 15, 20, 4, 6, 8)
 #'
 #' # Folk rule
-#' conewise_rule(C, rule = "folk")
+#' mcstCone(C, rule = "folk")
 #'
 #' # Optimistic weighted Shapley rule
-#' conewise_rule(C, rule = "ows", weights = c(2, 1, 1))
+#' mcstCone(C, rule = "owshapley", weights = c(2, 1, 1))
 #'
 #' # Bogomolnaia and Moulin family
-#' conewise_rule(C, rule = "bogomolnaia", lambda = 2)
-#' conewise_rule(C, rule = "bogomolnaia", lambda = Inf)
+#' mcstCone(C, rule = "bogomolnaia", lambda = 2)
+#' mcstCone(C, rule = "bogomolnaia", lambda = Inf)
 #'
 #' @concept Algorithmic Rules
 #' @concept MCSTP
 #'
 #' @export
 
-conewise_rule <- function(C, rule = "folk", weights = NULL, lambda = 1) {
+mcstCone <- function(C, rule = c("folk", "owshapley", "bogomolnaia"), weights = NULL, lambda = 1) {
 
   # Convert input into a standard cost matrix C for N_0 (agents + source)
   C_mat <- .prepare_matrix(C)
   n <- nrow(C_mat) - 1      # Number of agents n = |N|
   N <- as.character(1:n)    # Set of agents N = {1, ..., n}
-  N_0 <- c("0", N)          # Set of nodes N_0 = N U {0}
+
+  rule <- match.arg(rule)
 
   # Rule and parameters validation
-  available_rules <- c("folk", "ows", "bogomolnaia")
-
-  if (!(rule %in% available_rules)) {
-    stop(paste("Rule must be one of:", paste(available_rules, collapse = ", ")))
-  }
-
-  if (rule == "ows") {
-    if (is.null(weights)) stop("Weights are required for the 'ows' rule")
+  if (rule == "owshapley") {
+    if (is.null(weights)) stop("Weights are required for the 'owshapley' rule")
 
     if (length(weights) != n) stop("Weight vector length must match the number of agents")
 
     if (is.null(names(weights))) {
       names(weights) <- N
     }
-
-    # if (all(weights == weights[1])) {
-    #   message("All weights are equal: optimistic weighted Shapley's allocation is equivalent to the folk allocation")
-    # }
   }
 
   if (rule == "bogomolnaia") {
     if (is.null(lambda) || is.na(lambda) || lambda < 0) {
       stop("Lambda must be a non-negative number")
     }
-    # if (lambda == 1) {
-    #   message("Lambda is 1: Bogomolnaia and Moulin's allocation is equivalent to the folk allocation")
-    # }
   }
 
   # Inner function to calculate cone-wise decomposition and allocation
   # R(N_0, C) = sum_{q=1}^{m(C)} x^q * R(N_0, C^q)
-  .compute_conewise <- function(C_mat, rule_type, w, l) {
+  .compute_conewise <- function(C_mat, rule_type, w, l, n_agents, N_names) {
+    N_0 <- c("0", N) # Set of nodes N_0 = N U {0}
 
     # Identify unique costs to define the decomposition
     unique_costs <- sort(unique(as.vector(C_mat[upper.tri(C_mat)])))
@@ -1984,8 +1922,8 @@ conewise_rule <- function(C, rule = "folk", weights = NULL, lambda = 1) {
     # x^q: non-negative weights for the decomposition (differences between unique costs)
     x_q <- diff(c(0, unique_costs))
 
-    allocations <- setNames(numeric(n), N)
-    step_details <- matrix(0, nrow = length(unique_costs), ncol = n, dimnames = list(paste0("Cost_", unique_costs), N))
+    allocations <- setNames(numeric(n_agents), N_names)
+    step_details <- matrix(0, nrow = length(unique_costs), ncol = n_agents, dimnames = list(paste0("Cost_", unique_costs), N_names))
 
     # Iterate through each elementary mcstp (C^q)
     for (q in seq_along(unique_costs)) {
@@ -1997,7 +1935,7 @@ conewise_rule <- function(C, rule = "folk", weights = NULL, lambda = 1) {
       # For each elementary problem, we find components S connected by paths of cost 0
       adj_zero <- (C_q == 0)
       visited <- setNames(rep(FALSE, length(N_0)), N_0)
-      elem_alloc <- setNames(numeric(n), N)
+      elem_alloc <- setNames(numeric(n_agents), N_names)
 
       for (node in N_0) {
         if (!visited[node]) {
@@ -2024,7 +1962,7 @@ conewise_rule <- function(C, rule = "folk", weights = NULL, lambda = 1) {
               # Folk rule: 1/|S|
               elem_alloc[S] <- 1 / length(S)
 
-            } else if (rule_type == "ows") {
+            } else if (rule_type == "owshapley") {
               # Optimistic weighted Shapley: w_i / sum(w_j for j in S)
               elem_alloc[S] <- w[S] / sum(w[S])
 
@@ -2064,15 +2002,8 @@ conewise_rule <- function(C, rule = "folk", weights = NULL, lambda = 1) {
 
   ## Execution ##
 
-  results <- .compute_conewise(C_mat, rule, weights, lambda)
+  results <- .compute_conewise(C_mat, rule, weights, lambda, n, N)
   m_cost <- sum(results$allocations) # Total cost m(N_0, C)
-
-  # cat(paste0("Rule: ", rule, " (Cone-wise Decomposition)\n"))
-  # if (rule == "ows") cat(paste0("Weights: ", paste(weights, collapse = " "), "\n"))
-  # if (rule == "bogomolnaia") cat(paste0("Lambda: ", lambda, "\n"))
-  # print(round(results$allocations, 2))
-  # cat("----------\n")
-  # cat(paste0("Total Cost: ", round(m_cost, 2), "\n"))
 
   # Generates a ranking based on allocations, using stars (*) for ties
   ord <- order(-results$allocations, names(results$allocations))
@@ -2098,7 +2029,7 @@ conewise_rule <- function(C, rule = "folk", weights = NULL, lambda = 1) {
     decomposition = results$steps
   )
 
-  if (rule == "ows") output$weights <- weights
+  if (rule == "owshapley") output$weights <- weights
   if (rule == "bogomolnaia") output$lambda <- lambda
 
   class(output) <- "mcstp_conewise"
@@ -2108,7 +2039,7 @@ conewise_rule <- function(C, rule = "folk", weights = NULL, lambda = 1) {
 
 #' @export
 print.mcstp_conewise <- function(x, ...) {
-  if (x$rule == "ows") cat(paste0("Weights: ", paste(x$weights, collapse = " "), "\n"))
+  if (x$rule == "owshapley") cat(paste0("Weights: ", paste(x$weights, collapse = " "), "\n"))
   if (x$rule == "bogomolnaia") cat(paste0("Lambda: ", x$lambda, "\n"))
   print(round(x$allocations, 2))
   invisible(x)
@@ -2116,95 +2047,4 @@ print.mcstp_conewise <- function(x, ...) {
 
 
 
-#### Internal functions ####
-
-# Prepares the cost matrix from a vector or matrix, ensuring row/column names
-.prepare_matrix <- function(x) {
-  if (is.vector(x)) {
-    # Solve for N in the equation length(x) = N * (N - 1) / 2
-    N <- (1 + sqrt(1 + 8 * length(x))) / 2
-    m <- matrix(0, N, N)
-    m[lower.tri(m)] <- x
-    m <- m + t(m)
-    rownames(m) <- colnames(m) <- as.character(0:(N-1))
-    return(m)
-  }
-  if (is.matrix(x)) {
-    if (is.null(rownames(x))) {
-      rownames(x) <- colnames(x) <- as.character(0:(nrow(x)-1))
-    }
-    return(x)
-  }
-  stop("Input must be a numeric vector or a square matrix.")
-}
-
-
-# General plotting function for mcstp problems
-.plot_mcstp <- function(adj, mst_arcs, allocation, main_title, sub_title) {
-  if (!requireNamespace("igraph", quietly = TRUE)) {
-    stop("Package 'igraph' needed for drawing. Please install it.")
-  }
-
-  n <- nrow(adj) - 1
-  adj_plot <- adj
-  adj_plot[is.infinite(adj_plot)] <- 0
-  g <- igraph::graph_from_adjacency_matrix(adj_plot,
-                                           mode = "undirected", weighted = TRUE)
-
-  arc_colors <- rep("grey80", igraph::ecount(g))
-  arc_widths <- rep(1, igraph::ecount(g))
-  arc_labels <- as.character(igraph::E(g)$weight)
-
-  arcs <- igraph::as_edgelist(g, names = TRUE)
-
-  for(k in 1:nrow(mst_arcs)) {
-    i <- as.character(mst_arcs$i[k])
-    j <- as.character(mst_arcs$j[k])
-    stage <- mst_arcs$stage[k]
-
-    for(l in 1:nrow(arcs)) {
-      if((arcs[l,1] == i && arcs[l,2] == j) ||
-         (arcs[l,1] == j && arcs[l,2] == i)) {
-        arc_colors[l] <- "red"
-        arc_widths[l] <- 2
-        arc_labels[l] <- paste0(arc_labels[l], " [", stage, "]")
-      }
-    }
-  }
-
-  v_labels <- as.character(0:n)
-  v_colors <- c("#F0FFFF", rep("#D8E6E6", n))
-
-  for(i in 1:n) {
-    if (is.null(allocation)) {
-      v_labels[i+1] <- as.character(i)
-    } else {
-      v_labels[i+1] <- paste0(i, "\n(", round(allocation[i], 2), ")")
-    }
-  }
-
-  plot(g,
-       layout = igraph::layout_in_circle(g),
-       edge.label = arc_labels,
-       edge.label.color = "#27408B",
-       edge.label.cex = 0.9,
-       edge.color = arc_colors,
-       edge.width = arc_widths,
-       edge.lty = 1,
-       vertex.label = v_labels,
-       vertex.color = v_colors,
-       vertex.frame.color = "black",
-       vertex.label.color = "black",
-       vertex.label.font = 1,
-       vertex.label.cex = 0.8,
-       vertex.size = 40,
-       main = if(main_title == "") NULL else main_title)
-
-  if(sub_title != "") {
-    mtext(sub_title, side = 3, line = 0.5, cex = 0.7,
-          family = "sans", font = 3, col = "#444444")
-  }
-}
-
-
-# Modified 29/04 13:23
+# Modified 12/05 21:00
