@@ -2004,6 +2004,3 @@ print.mcstp_cc <- function(x, ...) {
   invisible(x)
 }
 
-
-
-# Modified 12/05 21:00

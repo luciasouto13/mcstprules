@@ -23,7 +23,7 @@ implemented rules and analysis tools, please see the central documentation page:
 Useful links:
 \itemize{
   \item \url{https://github.com/luciasouto13/mcstprules}
-  \item \url{https://luciasouto13.github.io/mcstprules}
+  \item \url{https://luciasouto13.github.io/mcstprules/}
   \item Report bugs at \url{https://github.com/luciasouto13/mcstprules/issues}
 }
 

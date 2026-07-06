@@ -1,6 +1,20 @@
 ---
 title: "Demo for 'mcstprules::scalability'"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Demo for 'mcstprules::scalability'}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+library(mcstprules)
+```
 
 This demo runs the code from `demo("scalability", package = "mcstprules")` in R. 
 

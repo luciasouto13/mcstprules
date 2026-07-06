@@ -2136,6 +2136,3 @@ print.mcstp_conewise <- function(x, ...) {
   invisible(x)
 }
 
-
-
-# Modified 12/05 21:00

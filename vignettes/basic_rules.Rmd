@@ -1,6 +1,20 @@
 ---
 title: "Demo for 'mcstprules::basic_rules'"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Demo for 'mcstprules::basic_rules'}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+library(mcstprules)
+```
 
 This demo runs the code from `demo("basic_rules", package = "mcstprules")` in R. 
 
