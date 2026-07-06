@@ -95,11 +95,11 @@
       if (!requireNamespace("readxl", quietly = TRUE))
         stop("Package 'readxl' is required to read Excel files. Please install it")
 
-      raw <- as.data.frame(readxl::read_excel(x, col_names = TRUE))
+      raw <- as.data.frame(suppressMessages(readxl::read_excel(x, col_names = TRUE)))
 
       # Check if first row is header or data
       if (!"from" %in% tolower(colnames(raw))) {
-        raw <- as.data.frame(readxl::read_excel(x, col_names = FALSE))
+        raw <- as.data.frame(suppressMessages(readxl::read_excel(x, col_names = FALSE)))
         colnames(raw) <- NULL
       }
 
@@ -108,10 +108,10 @@
       line <- readLines(x, n = 1, warn = FALSE)
       df_func <- if (grepl(";", line)) read.csv2 else read.csv
 
-      header_check <- df_func(x, header = FALSE, nrows = 1, stringsAsFactors = FALSE)
+      header_check <- suppressWarnings(df_func(x, header = FALSE, nrows = 1, stringsAsFactors = FALSE))
       has_head <- "from" %in% tolower(trimws(unlist(header_check)))
 
-      raw <- df_func(x, header = has_head, stringsAsFactors = FALSE)
+      raw <- suppressWarnings(df_func(x, header = has_head, stringsAsFactors = FALSE))
       if (!has_head) colnames(raw) <- NULL
 
     } else {

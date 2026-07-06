@@ -106,13 +106,12 @@
 #' @return A list containing:
 #' \itemize{
 #'   \item \code{bird}: the Bird's allocation vector \eqn{B(N_0, C)} for the natural ordering.
-#'   \item \code{arcs}: a data frame of edges \eqn{(i, j)} in the final tree and the stage at which they were added.
-#'   \item \code{e_bird}: the extended Bird's allocation (average over permutations).
+#'   \item \code{e_bird}: the extended Bird's allocation (average over permutations if ties exist; equal to \code{bird} otherwise).
+#'   \item \code{arcs}: if the MCST is unique, a data frame of edges \eqn{(i, j)} in the tree and the stage at which they were added; if ties exist, a list of such data frames, one per distinct optimal tree.
 #'   \item \code{total}: the total cost of the MCST, \eqn{m(N_0, C)}.
-#'   \item \code{percentage}: the share of the total cost allocated to each agent.
-#'   \item \code{ranking}: a ranking of agents by cost (from highest to lowest; ties marked with *).
-#'   \item \code{nperms}: the number of permutations (\eqn{n!} or \code{nsim}) computed for the average allocation (if ties exist).
-#'   \item \code{perms}: a data frame with the detailed allocations for the computed permutations (if ties exist).
+#'   \item \code{percentage}: the share of the total cost allocated to each agent, based on \code{e_bird}.
+#'   \item \code{ranking}: a ranking of agents by cost in \code{e_bird} (from highest to lowest; ties marked with *).
+#'   \item \code{perms}: if ties exist, a list with \code{$table} (allocations per permutation, only the first 6 rows shown if \eqn{n>3}), \code{$summary} (distinct allocations with their multiplicity) and \code{$nperms} (total number of permutations computed); \code{NULL} if the MCST is unique.
 #'   \item \code{is_unique}: logical; if \code{TRUE}, the MCST is unique.
 #'   \item \code{method}: the method applied for computing the extended rule (\code{"exact"} or \code{"montecarlo"}).
 #' }
@@ -280,11 +279,47 @@ mcstBird <- function(C, draw = FALSE, which.plot = c("main", "details"), titles 
     # Calculate the average allocation
     avg_allocation <- colMeans(B_pi)
 
-    perms <- data.frame(
-      pi = apply(perms_output, 1, paste, collapse = "-"),
-      B_pi,
-      row.names = NULL,
-      check.names = FALSE
+    key <- apply(round(B_pi, 8), 1, paste, collapse = "_")
+    first_idx <- !duplicated(key)
+    mult <- as.integer(table(key)[key[first_idx]])
+
+    unique_arcs <- arcs_pi[first_idx]
+
+    if (n > 3) {
+      perms_table <- data.frame(
+        pi = apply(perms_output[1:6, , drop = FALSE], 1, paste, collapse = "-"),
+        B_pi[1:6, , drop = FALSE],
+        row.names = NULL,
+        check.names = FALSE
+      )
+      perms_summary <- data.frame(
+        # pi = apply(perms_output[first_idx, , drop = FALSE], 1, paste, collapse = "-"),
+        B_pi[first_idx, , drop = FALSE],
+        times = mult,
+        row.names = NULL,
+        check.names = FALSE
+      )
+
+    } else {
+      perms_full <- data.frame(
+        pi = apply(perms_output, 1, paste, collapse = "-"),
+        B_pi,
+        row.names = NULL,
+        check.names = FALSE
+      )
+      perms_table <- perms_full
+      perms_summary <- data.frame(
+        # pi = perms_full$pi[first_idx],
+        B_pi[first_idx, , drop = FALSE],
+        times = mult,
+        row.names = NULL,
+        check.names = FALSE
+      )
+    }
+
+    perms <- structure(
+      list(table = perms_table, summary = perms_summary, nperms = nperms),
+      class = "mcstp_perms"
     )
   }
 
@@ -305,7 +340,7 @@ mcstBird <- function(C, draw = FALSE, which.plot = c("main", "details"), titles 
         on.exit(par(old_par), add = TRUE)
 
         for (k in 1:nperms) {
-          order <- perms$pi[k]
+          order <- perms$table$pi[k]
           current_allocation <- B_pi[k, ]
           .plot_mcstp(C_mat, arcs_pi[[k]], current_allocation,
                       main_title = "", sub_title = paste("Order:", order))
@@ -344,13 +379,16 @@ mcstBird <- function(C, draw = FALSE, which.plot = c("main", "details"), titles 
     }
   }
 
-  # Generates a ranking based on allocations, using stars (*) for ties
-  ord <- order(-results$allocations, names(results$allocations))
-  vals <- results$allocations[ord]; noms <- names(results$allocations)[ord]
+  # Final allocation used for output
+  final_alloc <- if (results$tie_detected) avg_allocation else results$allocations
+
+  # Generates a ranking based on the final allocation, using stars (*) for ties
+  ord <- order(-final_alloc, names(final_alloc))
+  vals <- final_alloc[ord]; noms <- names(final_alloc)[ord]
   tab <- table(vals)
   rep_vals <- sort(as.numeric(names(tab[tab > 1])), decreasing = TRUE)
 
-  rank_star <- noquote(sapply(1:length(vals), function(i) {
+  rank_star <- noquote(sapply(seq_along(vals), function(i) {
     if (vals[i] %in% rep_vals) {
       paste0(noms[i], strrep("*", which(rep_vals == vals[i])))
     } else noms[i]
@@ -361,12 +399,11 @@ mcstBird <- function(C, draw = FALSE, which.plot = c("main", "details"), titles 
 
   output <- list(
     bird = results$allocations,
-    arcs = results$arcs,
-    e_bird = if(results$tie_detected) avg_allocation else results$allocations,
+    e_bird = final_alloc,
+    arcs = if (results$tie_detected) unique_arcs else results$arcs,
     total = m_cost,
-    percentage = round((results$allocations / m_cost) * 100, 2),
+    percentage = round((final_alloc / m_cost) * 100, 2),
     ranking = rank_star,
-    nperms = if(results$tie_detected) nperms else NULL,
     perms = if(results$tie_detected) perms else NULL,
     is_unique = !results$tie_detected,
     method = method
@@ -389,6 +426,23 @@ print.mcstp_bird <- function(x, ...) {
     )
     print(round(alloc, 2))
   }
+  invisible(x)
+}
+
+#' @export
+print.mcstp_perms <- function(x, ...) {
+  cat("$table\n")
+  if (!is.null(x$nperms) && nrow(x$table) < x$nperms) {
+    cat("Showing only the first", nrow(x$table), "of", x$nperms, "permutations...\n")
+  }
+  print(x$table)
+
+  cat("\n$summary\n")
+  print(x$summary)
+
+  cat("\n$nperms\n")
+  print(x$nperms)
+
   invisible(x)
 }
 
@@ -445,13 +499,12 @@ print.mcstp_bird <- function(x, ...) {
 #' @return A list containing:
 #' \itemize{
 #'   \item \code{dk}: the Dutta-Kar's allocation vector \eqn{DK(N_0, C)} for the natural ordering.
-#'   \item \code{arcs}: a data frame of edges \eqn{(i, j)} in the final tree and the stage at which they were added.
-#'   \item \code{e_dk}: the extended Dutta-Kar's allocation (average over permutations).
+#'   \item \code{e_dk}: the extended Dutta-Kar's allocation (average over permutations if ties exist; equal to \code{dk} otherwise).
+#'   \item \code{arcs}: if the MCST is unique, a data frame of edges \eqn{(i, j)} in the tree and the stage at which they were added; if ties exist, a list of such data frames, one per distinct optimal tree.
 #'   \item \code{total}: the total cost of the MCST, \eqn{m(N_0, C)}.
-#'   \item \code{percentage}: the share of the total cost allocated to each agent.
-#'   \item \code{ranking}: a ranking of agents by cost (from highest to lowest; ties marked with *).
-#'   \item \code{nperms}: the number of permutations (\eqn{n!} or \code{nsim}) computed for the average allocation (if ties exist).
-#'   \item \code{perms}: a data frame with the detailed allocations for the computed permutations (if ties exist).
+#'   \item \code{percentage}: the share of the total cost allocated to each agent, based on \code{e_dk}.
+#'   \item \code{ranking}: a ranking of agents by cost in \code{e_dk} (from highest to lowest; ties marked with *).
+#'   \item \code{perms}: if ties exist, a list with \code{$table} (allocations per permutation, only the first 6 rows shown if \eqn{n>3}), \code{$summary} (distinct allocations with their multiplicity) and \code{$nperms} (total number of permutations computed); \code{NULL} if the MCST is unique.
 #'   \item \code{is_unique}: logical; if \code{TRUE}, the MCST is unique.
 #'   \item \code{method}: the method applied for computing the extended rule (\code{"exact"} or \code{"montecarlo"}).
 #' }
@@ -635,11 +688,47 @@ mcstDuttaKar <- function(C, draw = FALSE, which.plot = c("main", "details"), tit
     # Calculate the average allocation
     avg_allocation <- colMeans(DK_pi)
 
-    perms <- data.frame(
-      pi = apply(perms_output, 1, paste, collapse = "-"),
-      DK_pi,
-      row.names = NULL,
-      check.names = FALSE
+    key <- apply(round(DK_pi, 8), 1, paste, collapse = "_")
+    first_idx <- !duplicated(key)
+    mult <- as.integer(table(key)[key[first_idx]])
+
+    unique_arcs <- arcs_pi[first_idx]
+
+    if (n > 3) {
+      perms_table <- data.frame(
+        pi = apply(perms_output[1:6, , drop = FALSE], 1, paste, collapse = "-"),
+        DK_pi[1:6, , drop = FALSE],
+        row.names = NULL,
+        check.names = FALSE
+      )
+      perms_summary <- data.frame(
+        # pi = apply(perms_output[first_idx, , drop = FALSE], 1, paste, collapse = "-"),
+        DK_pi[first_idx, , drop = FALSE],
+        times = mult,
+        row.names = NULL,
+        check.names = FALSE
+      )
+
+    } else {
+      perms_full <- data.frame(
+        pi = apply(perms_output, 1, paste, collapse = "-"),
+        DK_pi,
+        row.names = NULL,
+        check.names = FALSE
+      )
+      perms_table <- perms_full
+      perms_summary <- data.frame(
+        # pi = perms_full$pi[first_idx],
+        DK_pi[first_idx, , drop = FALSE],
+        times = mult,
+        row.names = NULL,
+        check.names = FALSE
+      )
+    }
+
+    perms <- structure(
+      list(table = perms_table, summary = perms_summary, nperms = nperms),
+      class = "mcstp_perms"
     )
   }
 
@@ -660,7 +749,7 @@ mcstDuttaKar <- function(C, draw = FALSE, which.plot = c("main", "details"), tit
         on.exit(par(old_par), add = TRUE)
 
         for (k in 1:nperms) {
-          order <- perms$pi[k]
+          order <- perms$table$pi[k]
           current_allocation <- DK_pi[k, ]
           .plot_mcstp(C_mat, arcs_pi[[k]], current_allocation,
                       main_title = "", sub_title = paste("Order:", order))
@@ -699,13 +788,16 @@ mcstDuttaKar <- function(C, draw = FALSE, which.plot = c("main", "details"), tit
     }
   }
 
-  # Generates a ranking based on allocations, using stars (*) for ties
-  ord <- order(-results$allocations, names(results$allocations))
-  vals <- results$allocations[ord]; noms <- names(results$allocations)[ord]
+  # Final allocation used for output
+  final_alloc <- if (results$tie_detected) avg_allocation else results$allocations
+
+  # Generates a ranking based on the final allocation, using stars (*) for ties
+  ord <- order(-final_alloc, names(final_alloc))
+  vals <- final_alloc[ord]; noms <- names(final_alloc)[ord]
   tab <- table(vals)
   rep_vals <- sort(as.numeric(names(tab[tab > 1])), decreasing = TRUE)
 
-  rank_star <- noquote(sapply(1:length(vals), function(i) {
+  rank_star <- noquote(sapply(seq_along(vals), function(i) {
     if (vals[i] %in% rep_vals) {
       paste0(noms[i], strrep("*", which(rep_vals == vals[i])))
     } else noms[i]
@@ -716,12 +808,11 @@ mcstDuttaKar <- function(C, draw = FALSE, which.plot = c("main", "details"), tit
 
   output <- list(
     dk = results$allocations,
-    arcs = results$arcs,
-    e_dk = if(results$tie_detected) avg_allocation else results$allocations,
+    e_dk = final_alloc,
+    arcs = if (results$tie_detected) unique_arcs else results$arcs,
     total = m_cost,
-    percentage = round((results$allocations / m_cost) * 100, 2),
+    percentage = round((final_alloc / m_cost) * 100, 2),
     ranking = rank_star,
-    nperms = if(results$tie_detected) nperms else NULL,
     perms = if(results$tie_detected) perms else NULL,
     is_unique = !results$tie_detected,
     method = method

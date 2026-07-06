@@ -18,8 +18,9 @@ You can install the development version of `mcstprules` from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("pak")
-pak::pak("luciasouto13/mcstprules")
+# install.packages("remotes")
+remotes::install_github("luciasouto13/mcstprules")
+library(mcstprules)
 ```
 
 <br>
