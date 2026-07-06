@@ -25,7 +25,7 @@ Imports:
     lpSolve,
     plotly,
     rcdd
-URL: https://github.com/luciasouto13/mcstprules, https://luciasouto13.github.io/mcstprules
+URL: https://github.com/luciasouto13/mcstprules, https://luciasouto13.github.io/mcstprules, https://luciasouto13.github.io/mcstprules/
 BugReports: https://github.com/luciasouto13/mcstprules/issues
 Suggests: 
     knitr,

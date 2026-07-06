@@ -5,70 +5,62 @@ template:
     in_header: |
       <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
       <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
 navbar:
   structure:
-    left: [intro, reference, demo]  # articles
-    right: [github, manual]
+    left:
+    - intro
+    - reference
+    - demo
+    right:
+    - github
+    - manual
   components:
-
-    # articles:
-    #   text: "User Guides"
-    #   menu:
-    #     - text: "Algorithmic Rules Guide"
-    #       href: articles/algorithmic_rules.html
-    #     - text: "Cooperative Games Guide"
-    #       href: articles/cooperative_games.html
-
     demo:
-      text: "Demos"
+      text: Demos
       menu:
-        - text: "Basic Rules"
-          href: articles/basic_rules.html
-        - text: "Analysis Tools"
-          href: articles/analysis_tools.html
-        - text: "Scalability"
-          href: articles/scalability.html
-        - text: "Source Code (.R files)"
-          href: https://github.com/luciasouto13/mcstprules/tree/master/demo
-
+      - text: Basic Rules
+        href: articles/basic_rules.html
+      - text: Analysis Tools
+        href: articles/analysis_tools.html
+      - text: Scalability
+        href: articles/scalability.html
+      - text: Source Code (.R files)
+        href: https://github.com/luciasouto13/mcstprules/tree/master/demo
     manual:
-      text: "PDF Manual"
+      text: PDF Manual
       href: mcstprules_0.1.0.pdf
-
 reference:
-  - title: "Package Overview"
-    desc: "General information about the implemented rules and analysis tools."
-    contents:
-      - mcstRules
+- title: Package Overview
+  desc: General information about the implemented rules and analysis tools.
+  contents: mcstRules
+- title: Algorithmic & Decomposition Rules
+  desc: Rules based on Prim, Kruskal, Boruvka, and cone-wise decomposition.
+  contents:
+  - mcstBird
+  - mcstDuttaKar
+  - mcstFolk
+  - mcstOWShapley
+  - mcstPWShapley
+  - mcstBoruvka
+  - mcstCone
+- title: Cooperative Games
+  desc: Cost allocations based on the Shapley value or Nucleolus of associated cooperative
+    games.
+  contents:
+  - mcstGamePrivate
+  - mcstKar
+  - mcstGameIrred
+  - mcstGameOpt
+  - mcstGamePublic
+  - mcstGameCC
+- title: Analysis Tools
+  desc: Tools to evaluate core stability, geometric properties, sensitivity, and compare
+    allocations.
+  contents:
+  - mcstCoreCheck
+  - mcstCorePoints
+  - mcstCorePlot
+  - mcstStabilityRange
+  - mcstSensitivity
+  - mcstCompare
 
-  - title: "Algorithmic & Decomposition Rules"
-    desc: "Rules based on Prim, Kruskal, Boruvka, and cone-wise decomposition."
-    contents:
-      - mcstBird
-      - mcstDuttaKar
-      - mcstFolk
-      - mcstOWShapley
-      - mcstPWShapley
-      - mcstBoruvka
-      - mcstCone
-
-  - title: "Cooperative Games"
-    desc: "Cost allocations based on the Shapley value or Nucleolus of associated cooperative games."
-    contents:
-      - mcstGamePrivate
-      - mcstKar
-      - mcstGameIrred
-      - mcstGameOpt
-      - mcstGamePublic
-      - mcstGameCC
-
-  - title: "Analysis Tools"
-    desc: "Tools to evaluate core stability, geometric properties, sensitivity, and compare allocations."
-    contents:
-      - mcstCoreCheck
-      - mcstCorePoints
-      - mcstCorePlot
-      - mcstStabilityRange
-      - mcstSensitivity
-      - mcstCompare
