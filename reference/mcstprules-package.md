@@ -22,7 +22,7 @@ Useful links:
 
 - <https://github.com/luciasouto13/mcstprules>
 
-- <https://luciasouto13.github.io/mcstprules>
+- <https://luciasouto13.github.io/mcstprules/>
 
 - Report bugs at <https://github.com/luciasouto13/mcstprules/issues>
 

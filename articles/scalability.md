@@ -40,25 +40,16 @@ costs[2:N0, 1] <- sample(10:12, N0 - 1, replace = TRUE)
 diag(costs) <- 0
 
 print(head(costs[, 1:6]))
-```
-
-    ##      [,1] [,2] [,3] [,4] [,5] [,6]
-    ## [1,]    0   11   10   11   10   12
-    ## [2,]   11    0    1    1    3    2
-    ## [3,]   12    1    0    1    2    3
-    ## [4,]   10    1    1    0    3    1
-    ## [5,]   11    3    2    3    0    2
-    ## [6,]   11    2    3    1    2    0
-
-``` r
-
+#>      [,1] [,2] [,3] [,4] [,5] [,6]
+#> [1,]    0   11   10   11   10   12
+#> [2,]   11    0    1    1    3    2
+#> [3,]   12    1    0    1    2    3
+#> [4,]   10    1    1    0    3    1
+#> [5,]   11    3    2    3    0    2
+#> [6,]   11    2    3    1    2    0
 pause()
-```
-
-    ## 
-    ## [Press Enter to continue...]
-
-``` r
+#> 
+#> [Press Enter to continue...]
 
 # ---------------------------------------------------------------------
 #            STEP 2: Approximating Rules with Multiple MCSTs
@@ -74,19 +65,10 @@ be <- Sys.time()
 time_bird <- round(as.numeric(difftime(be, bs,
                                        units = "secs")), 4)
 print(time_bird)
-```
-
-    ## [1] 3.9336
-
-``` r
-
+#> [1] 3.8167
 pause()
-```
-
-    ## 
-    ## [Press Enter to continue...]
-
-``` r
+#> 
+#> [Press Enter to continue...]
 
 # ---------------------------------------------------------------------
 #          STEP 3: Approximating Game-Theoretic Rules at Scale
@@ -102,19 +84,10 @@ ke <- Sys.time()
 time_kar <- round(as.numeric(difftime(ke, ks,
                                      units = "secs")), 4)
 print(time_kar)
-```
-
-    ## [1] 6.7653
-
-``` r
-
+#> [1] 6.7395
 pause()
-```
-
-    ## 
-    ## [Press Enter to continue...]
-
-``` r
+#> 
+#> [Press Enter to continue...]
 
 # ---------------------------------------------------------------------
 #                     STEP 4: Viewing the Solutions
@@ -125,17 +98,13 @@ results <- data.frame(
   Kar_MC   = round(kar$allocation, 2)
 )
 print(head(results))
-```
-
-    ##   Agent Bird_MC Kar_MC
-    ## 1     1    1.00   1.48
-    ## 2     2    2.10   1.23
-    ## 3     3    1.00   1.49
-    ## 4     4    2.04   1.33
-    ## 5     5    1.00   1.70
-    ## 6     6    1.00   1.75
-
-``` r
+#>   Agent Bird_MC Kar_MC
+#> 1     1    1.00   1.48
+#> 2     2    2.10   1.23
+#> 3     3    1.00   1.49
+#> 4     4    2.04   1.33
+#> 5     5    1.00   1.70
+#> 6     6    1.00   1.75
 
 # =====================================================================
 #             Demo completed. Explore more with ?mcstRules
