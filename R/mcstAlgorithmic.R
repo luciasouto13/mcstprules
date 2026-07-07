@@ -1925,12 +1925,12 @@ print.mcstp_boruvka <- function(x, ...) {
 #'
 #' @return A list containing:
 #' \itemize{
-#'   \item \code{allocations}: the cost allocation vector \eqn{R(N_0, C)} for the chosen rule \eqn{R}.
+#'   \item \code{allocation}: the cost allocation vector \eqn{R(N_0, C)} for the chosen rule \eqn{R}.
 #'   \item \code{rule}: the rule \eqn{R} applied for the allocation.
 #'   \item \code{total}: the total cost of the MCST, \eqn{m(N_0, C)}.
 #'   \item \code{percentage}: the share of the total cost allocated to each agent.
 #'   \item \code{ranking}: a ranking of agents by cost (from highest to lowest; ties marked with *).
-#'   \item \code{decomposition}: a matrix showing the allocation at each cost level of the decomposition.
+#'   \item \code{decomposition}: a data frame containing the details of the cone-wise decomposition, including the cost threshold, the weight of each layer and the elementary allocation for each agent.
 #'   \item \code{weights}: the weight vector used for the allocation; only if \code{rule = "owshapley"}.
 #'   \item \code{lambda}: the lambda value used for the allocation; only if \code{rule = "bogomolnaia"}.
 #' }
@@ -2014,7 +2014,7 @@ mcstCone <- function(C, rule = c("folk", "owshapley", "bogomolnaia"), weights = 
     x_q <- diff(c(0, unique_costs))
 
     allocations <- setNames(numeric(n_agents), N_names)
-    step_details <- matrix(0, nrow = length(unique_costs), ncol = n_agents, dimnames = list(paste0("Cost_", unique_costs), N_names))
+    step_details <- matrix(0, nrow = length(unique_costs), ncol = n_agents, dimnames = list(NULL, N_names))
 
     # Iterate through each elementary mcstp (C^q)
     for (q in seq_along(unique_costs)) {
@@ -2081,13 +2081,21 @@ mcstCone <- function(C, rule = c("folk", "owshapley", "bogomolnaia"), weights = 
 
       # Accumulate results for the general mcstp
       step_res <- x_q[q] * elem_alloc
-      step_details[q, ] <- step_res
+      step_details[q, ] <- elem_alloc
       allocations <- allocations + step_res
     }
 
+    decomp <- data.frame(
+      `threshold` = unique_costs,
+      `weight` = x_q,
+      round(step_details, 4),
+      check.names = FALSE
+    )
+    rownames(decomp) <- paste0("Layer ", seq_along(unique_costs))
+
     # Sort the allocation vector by agent index for the final output
     allocations <- allocations[order(as.numeric(names(allocations)))]
-    return(list(allocations = allocations, steps = step_details))
+    return(list(allocations = allocations, steps = decomp))
   }
 
 
@@ -2112,7 +2120,7 @@ mcstCone <- function(C, rule = c("folk", "owshapley", "bogomolnaia"), weights = 
   ## Output ##
 
   output <- list(
-    allocations = results$allocations,
+    allocation = results$allocations,
     rule = rule,
     total = m_cost,
     percentage = round((results$allocations / m_cost) * 100, 2),
@@ -2132,7 +2140,7 @@ mcstCone <- function(C, rule = c("folk", "owshapley", "bogomolnaia"), weights = 
 print.mcstp_conewise <- function(x, ...) {
   if (x$rule == "owshapley") cat(paste0("Weights: ", paste(x$weights, collapse = " "), "\n"))
   if (x$rule == "bogomolnaia") cat(paste0("Lambda: ", x$lambda, "\n"))
-  print(round(x$allocations, 2))
+  print(round(x$allocation, 2))
   invisible(x)
 }
 

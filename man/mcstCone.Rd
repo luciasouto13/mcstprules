@@ -26,12 +26,12 @@ The length of the vector must match the number of agents; only if \code{rule = "
 \value{
 A list containing:
 \itemize{
-  \item \code{allocations}: the cost allocation vector \eqn{R(N_0, C)} for the chosen rule \eqn{R}.
+  \item \code{allocation}: the cost allocation vector \eqn{R(N_0, C)} for the chosen rule \eqn{R}.
   \item \code{rule}: the rule \eqn{R} applied for the allocation.
   \item \code{total}: the total cost of the MCST, \eqn{m(N_0, C)}.
   \item \code{percentage}: the share of the total cost allocated to each agent.
   \item \code{ranking}: a ranking of agents by cost (from highest to lowest; ties marked with *).
-  \item \code{decomposition}: a matrix showing the allocation at each cost level of the decomposition.
+  \item \code{decomposition}: a data frame containing the details of the cone-wise decomposition, including the cost threshold, the weight of each layer and the elementary allocation for each agent.
   \item \code{weights}: the weight vector used for the allocation; only if \code{rule = "owshapley"}.
   \item \code{lambda}: the lambda value used for the allocation; only if \code{rule = "bogomolnaia"}.
 }
