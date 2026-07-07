@@ -244,7 +244,7 @@ mcstGamePrivate <- function(C, sol = c("shapley", "nucleolus"), draw = FALSE, wh
       })
 
       # Compute nucleolus of the savings game
-      nuc_s <- try(CoopGame::nucleolus(v_s), silent = TRUE)
+      nuc_s <- try(CoopGame::nucleolus(v_s[idx]), silent = TRUE)
 
       if (inherits(nuc_s, "try-error") || is.null(nuc_s)) {
         value <- rep(NA, n)
@@ -684,7 +684,7 @@ mcstGameIrred <- function(C, sol = c("shapley", "nucleolus"), draw = FALSE, whic
       })
 
       # Compute nucleolus of the savings game
-      nuc_s <- try(CoopGame::nucleolus(v_s), silent = TRUE)
+      nuc_s <- try(CoopGame::nucleolus(v_s[idx]), silent = TRUE)
 
       if (inherits(nuc_s, "try-error") || is.null(nuc_s)) {
         value <- rep(NA, n)
@@ -1053,7 +1053,7 @@ mcstGameOpt <- function(C, sol = c("shapley", "nucleolus"), draw = FALSE, which.
       })
 
       # Compute nucleolus of the savings game
-      nuc_s <- try(CoopGame::nucleolus(v_s), silent = TRUE)
+      nuc_s <- try(CoopGame::nucleolus(v_s[idx]), silent = TRUE)
 
       if (inherits(nuc_s, "try-error") || is.null(nuc_s)) {
         value <- rep(NA, n)
@@ -1450,7 +1450,7 @@ mcstGamePublic <- function(C, sol = c("shapley", "nucleolus"), draw = FALSE, whi
       })
 
       # Compute nucleolus of the savings game
-      nuc_s <- try(CoopGame::nucleolus(v_s), silent = TRUE)
+      nuc_s <- try(CoopGame::nucleolus(v_s[idx]), silent = TRUE)
 
       if (inherits(nuc_s, "try-error") || is.null(nuc_s)) {
         value <- rep(NA, n)
@@ -1844,7 +1844,7 @@ mcstGameCC <- function(C, sol = c("shapley", "nucleolus"), draw = FALSE, which.p
       })
 
       # Compute nucleolus of the savings game
-      nuc_s <- try(CoopGame::nucleolus(v_s), silent = TRUE)
+      nuc_s <- try(CoopGame::nucleolus(v_s[idx]), silent = TRUE)
 
       if (inherits(nuc_s, "try-error") || is.null(nuc_s)) {
         value <- rep(NA, n)
