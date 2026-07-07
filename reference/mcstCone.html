@@ -86,12 +86,12 @@ The length of the vector must match the number of agents; only if <code>rule = "
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list containing:</p><ul><li><p><code>allocations</code>: the cost allocation vector \(R(N_0, C)\) for the chosen rule \(R\).</p></li>
+    <p>A list containing:</p><ul><li><p><code>allocation</code>: the cost allocation vector \(R(N_0, C)\) for the chosen rule \(R\).</p></li>
 <li><p><code>rule</code>: the rule \(R\) applied for the allocation.</p></li>
 <li><p><code>total</code>: the total cost of the MCST, \(m(N_0, C)\).</p></li>
 <li><p><code>percentage</code>: the share of the total cost allocated to each agent.</p></li>
 <li><p><code>ranking</code>: a ranking of agents by cost (from highest to lowest; ties marked with *).</p></li>
-<li><p><code>decomposition</code>: a matrix showing the allocation at each cost level of the decomposition.</p></li>
+<li><p><code>decomposition</code>: a data frame containing the details of the cone-wise decomposition, including the cost threshold, the weight of each layer and the elementary allocation for each agent.</p></li>
 <li><p><code>weights</code>: the weight vector used for the allocation; only if <code>rule = "owshapley"</code>.</p></li>
 <li><p><code>lambda</code>: the lambda value used for the allocation; only if <code>rule = "bogomolnaia"</code>.</p></li>
 </ul></div>

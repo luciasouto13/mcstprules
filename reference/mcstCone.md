@@ -44,7 +44,7 @@ mcstCone(
 
 A list containing:
 
-- `allocations`: the cost allocation vector \\R(N_0, C)\\ for the chosen
+- `allocation`: the cost allocation vector \\R(N_0, C)\\ for the chosen
   rule \\R\\.
 
 - `rule`: the rule \\R\\ applied for the allocation.
@@ -56,8 +56,9 @@ A list containing:
 - `ranking`: a ranking of agents by cost (from highest to lowest; ties
   marked with \*).
 
-- `decomposition`: a matrix showing the allocation at each cost level of
-  the decomposition.
+- `decomposition`: a data frame containing the details of the cone-wise
+  decomposition, including the cost threshold, the weight of each layer
+  and the elementary allocation for each agent.
 
 - `weights`: the weight vector used for the allocation; only if
   `rule = "owshapley"`.
