@@ -90,7 +90,7 @@ mcstGamePublic(costs, sol = "nucleolus")
 #> 
 #> Solution: Nucleolus 
 #>  1  2  3 
-#>  8 11  3
+#>  4  8 10
 pause()
 #> 
 #> [Press Enter to continue...]

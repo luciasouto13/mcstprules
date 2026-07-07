@@ -251,6 +251,7 @@ mcstGamePrivate(c(12, 15, 20, 4, 6, 8), sol = "shapley", draw = TRUE)
 C_inf <- c(5, 9, Inf, 15, 6, Inf, 7, Inf, Inf, Inf,
            Inf, 8, 7, Inf, Inf, 5, Inf, Inf, 8, 9, 11)
 mcstGamePrivate(C_inf, sol = "nucleolus")
+#> [1] "Solution concept is only provided for games with a nonempty imputation set."
 #>              S v^p(S)
 #> 1          {1}      5
 #> 2          {2}      9
@@ -318,7 +319,7 @@ mcstGamePrivate(C_inf, sol = "nucleolus")
 #> 
 #> Solution: Nucleolus 
 #>  1  2  3  4  5  6 
-#>  5  9 -2 15  6  6 
+#> NA NA NA NA NA NA 
 
 # Matrix input
 C_mat <- matrix(c(0, 12, 15, 12,

@@ -135,8 +135,8 @@ mcstGamePublic(costs, sol = "nucleolus")
 #> 7     N     22
 #> 
 #> Solution: Nucleolus 
-#>  1  2  3 
-#> 10 13 -1
+#>   1   2   3 
+#> 5.5 7.5 9.0
 ```
 
 ### Comparing Rules
