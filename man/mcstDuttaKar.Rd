@@ -48,7 +48,7 @@ A list containing:
   \item \code{total}: the total cost of the MCST, \eqn{m(N_0, C)}.
   \item \code{percentage}: the share of the total cost allocated to each agent, based on \code{e_dk}.
   \item \code{ranking}: a ranking of agents by cost in \code{e_dk} (from highest to lowest; ties marked with *).
-  \item \code{perms}: if ties exist, a list with \code{$table} (allocations per permutation, only the first 6 rows shown if \eqn{n>3}), \code{$summary} (distinct allocations with their multiplicity) and \code{$nperms} (total number of permutations computed); \code{NULL} if the MCST is unique.
+  \item \code{perms}: if ties exist, a list with \code{$table} (allocations for at most the first 6 permutations computed, regardless of \eqn{n}), \code{$summary} (distinct allocations with their multiplicity, sorted in decreasing order) and \code{$nperms} (total number of permutations computed); \code{NULL} if the MCST is unique.
   \item \code{is_unique}: logical; if \code{TRUE}, the MCST is unique.
   \item \code{method}: the method applied for computing the extended rule (\code{"exact"} or \code{"montecarlo"}).
 }

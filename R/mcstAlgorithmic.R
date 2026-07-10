@@ -111,7 +111,7 @@
 #'   \item \code{total}: the total cost of the MCST, \eqn{m(N_0, C)}.
 #'   \item \code{percentage}: the share of the total cost allocated to each agent, based on \code{e_bird}.
 #'   \item \code{ranking}: a ranking of agents by cost in \code{e_bird} (from highest to lowest; ties marked with *).
-#'   \item \code{perms}: if ties exist, a list with \code{$table} (allocations per permutation, only the first 6 rows shown if \eqn{n>3}), \code{$summary} (distinct allocations with their multiplicity) and \code{$nperms} (total number of permutations computed); \code{NULL} if the MCST is unique.
+#'   \item \code{perms}: if ties exist, a list with \code{$table} (allocations for at most the first 6 permutations computed, regardless of \eqn{n}), \code{$summary} (distinct allocations with their multiplicity, sorted in decreasing order) and \code{$nperms} (total number of permutations computed); \code{NULL} if the MCST is unique.
 #'   \item \code{is_unique}: logical; if \code{TRUE}, the MCST is unique.
 #'   \item \code{method}: the method applied for computing the extended rule (\code{"exact"} or \code{"montecarlo"}).
 #' }
@@ -249,73 +249,114 @@ mcstBird <- function(C, draw = FALSE, which.plot = c("main", "details"), titles 
     }
 
     if (method == "exact") {
-      # Generate all pi in Pi_N
+      # Generate permutations
       Pi_N <- gtools::permutations(n = n, r = n, v = N)
       nperms <- nrow(Pi_N)
-
-      results_list <- lapply(1:nperms, function(k) {
-        .compute_bird(C_mat, as.character(Pi_N[k, ]), n)
-      })
-
-      B_pi <- do.call(rbind, lapply(results_list, `[[`, "allocations"))
-      arcs_pi <- lapply(results_list, `[[`, "arcs")
-      perms_output <- Pi_N
-
     } else {
-
       nperms <- nsim
+    }
 
-      results_list <- lapply(1:nsim, function(k) {
+    # Count distinct allocations
+    env <- new.env(hash = TRUE, parent = emptyenv())
+    sum_alloc <- numeric(n)
+    names(sum_alloc) <- N
+
+    # Support variables for plots/tables. Only keep full history if n <= 3
+    keep_all <- (n <= 3 && method == "exact")
+    if (keep_all) {
+      B_pi <- matrix(0, nrow = nperms, ncol = n)
+      colnames(B_pi) <- N
+      arcs_pi <- vector("list", nperms)
+    } else {
+      # If n > 3, we only save the first 6 permutations for the console summary
+      B_pi_6 <- matrix(0, nrow = min(6, nperms), ncol = n)
+      colnames(B_pi_6) <- N
+    }
+
+    if (method == "exact") {
+      perms_output <- Pi_N
+    } else {
+      perms_output <- matrix("", nrow = min(6, nperms), ncol = n)
+    }
+
+    # Compute and aggregate one by one
+    for (k in 1:nperms) {
+      if (method == "exact") {
+        current_pi <- as.character(Pi_N[k, ])
+      } else {
         current_pi <- sample(N)
-        res <- .compute_bird(C_mat, current_pi, n)
-        list(allocations = res$allocations, arcs = res$arcs, pi = current_pi)
-      })
+        if (k <= 6) perms_output[k, ] <- current_pi
+      }
 
-      B_pi <- do.call(rbind, lapply(results_list, `[[`, "allocations"))
-      arcs_pi <- lapply(results_list, `[[`, "arcs")
-      perms_output <- do.call(rbind, lapply(results_list, `[[`, "pi"))
+      # Compute Bird allocation for the current permutation
+      res <- .compute_bird(C_mat, current_pi, n)
+      alloc <- res$allocations
+
+      # Accumulate for the average
+      sum_alloc <- sum_alloc + alloc
+
+      # Save info for tables and plots
+      if (keep_all) {
+        B_pi[k, ] <- alloc
+        arcs_pi[[k]] <- res$arcs
+      } else if (k <= 6) {
+        B_pi_6[k, ] <- alloc
+      }
+
+      # Create a unique key for each allocation
+      key <- paste(round(alloc, 8), collapse = "_")
+
+      if (exists(key, envir = env)) {
+        env[[key]]$count <- env[[key]]$count + 1
+      } else {
+        env[[key]] <- list(alloc = alloc, arcs = res$arcs, count = 1)
+      }
     }
 
     # Calculate the average allocation
-    avg_allocation <- colMeans(B_pi)
+    avg_allocation <- sum_alloc / nperms
 
-    key <- apply(round(B_pi, 8), 1, paste, collapse = "_")
-    first_idx <- !duplicated(key)
-    mult <- as.integer(table(key)[key[first_idx]])
+    # Extract unique allocations and trees
+    keys <- ls(env)
+    num_unique <- length(keys)
+    unique_B_pi <- matrix(0, nrow = num_unique, ncol = n)
+    colnames(unique_B_pi) <- N
+    unique_arcs <- vector("list", num_unique)
+    mult <- integer(num_unique)
 
-    unique_arcs <- arcs_pi[first_idx]
-
-    if (n > 3) {
-      perms_table <- data.frame(
-        pi = apply(perms_output[1:6, , drop = FALSE], 1, paste, collapse = "-"),
-        B_pi[1:6, , drop = FALSE],
-        row.names = NULL,
-        check.names = FALSE
-      )
-      perms_summary <- data.frame(
-        # pi = apply(perms_output[first_idx, , drop = FALSE], 1, paste, collapse = "-"),
-        B_pi[first_idx, , drop = FALSE],
-        times = mult,
-        row.names = NULL,
-        check.names = FALSE
-      )
-
-    } else {
-      perms_full <- data.frame(
-        pi = apply(perms_output, 1, paste, collapse = "-"),
-        B_pi,
-        row.names = NULL,
-        check.names = FALSE
-      )
-      perms_table <- perms_full
-      perms_summary <- data.frame(
-        # pi = perms_full$pi[first_idx],
-        B_pi[first_idx, , drop = FALSE],
-        times = mult,
-        row.names = NULL,
-        check.names = FALSE
-      )
+    for (i in seq_along(keys)) {
+      val <- env[[keys[i]]]
+      unique_B_pi[i, ] <- val$alloc
+      unique_arcs[[i]] <- val$arcs
+      mult[i] <- val$count
     }
+
+    # Sort summary by the most frequent allocations
+    ord_idx <- order(mult, decreasing = TRUE)
+    unique_B_pi <- unique_B_pi[ord_idx, , drop = FALSE]
+    unique_arcs <- unique_arcs[ord_idx]
+    mult <- mult[ord_idx]
+
+    # Build final tables
+    B_pi_preview <- if (keep_all) {
+      B_pi[1:min(6, nrow(B_pi)), , drop = FALSE]
+    } else {
+      B_pi_6
+    }
+    pi_preview_rows <- min(6, nrow(perms_output))
+
+    perms_table <- data.frame(
+      pi = apply(perms_output[1:pi_preview_rows, , drop = FALSE], 1, paste, collapse = "-"),
+      B_pi_preview,
+      row.names = NULL,
+      check.names = FALSE
+    )
+    perms_summary <- data.frame(
+      unique_B_pi,
+      times = mult,
+      row.names = NULL,
+      check.names = FALSE
+    )
 
     perms <- structure(
       list(table = perms_table, summary = perms_summary, nperms = nperms),
@@ -504,7 +545,7 @@ print.mcstp_perms <- function(x, ...) {
 #'   \item \code{total}: the total cost of the MCST, \eqn{m(N_0, C)}.
 #'   \item \code{percentage}: the share of the total cost allocated to each agent, based on \code{e_dk}.
 #'   \item \code{ranking}: a ranking of agents by cost in \code{e_dk} (from highest to lowest; ties marked with *).
-#'   \item \code{perms}: if ties exist, a list with \code{$table} (allocations per permutation, only the first 6 rows shown if \eqn{n>3}), \code{$summary} (distinct allocations with their multiplicity) and \code{$nperms} (total number of permutations computed); \code{NULL} if the MCST is unique.
+#'   \item \code{perms}: if ties exist, a list with \code{$table} (allocations for at most the first 6 permutations computed, regardless of \eqn{n}), \code{$summary} (distinct allocations with their multiplicity, sorted in decreasing order) and \code{$nperms} (total number of permutations computed); \code{NULL} if the MCST is unique.
 #'   \item \code{is_unique}: logical; if \code{TRUE}, the MCST is unique.
 #'   \item \code{method}: the method applied for computing the extended rule (\code{"exact"} or \code{"montecarlo"}).
 #' }
@@ -658,73 +699,114 @@ mcstDuttaKar <- function(C, draw = FALSE, which.plot = c("main", "details"), tit
     }
 
     if (method == "exact") {
-      # Generate all pi in Pi_N
+      # Generate permutations
       Pi_N <- gtools::permutations(n = n, r = n, v = N)
       nperms <- nrow(Pi_N)
-
-      results_list <- lapply(1:nperms, function(k) {
-        .compute_dk(C_mat, as.character(Pi_N[k, ]), n)
-      })
-
-      DK_pi <- do.call(rbind, lapply(results_list, `[[`, "allocations"))
-      arcs_pi <- lapply(results_list, `[[`, "arcs")
-      perms_output <- Pi_N
-
     } else {
-
       nperms <- nsim
+    }
 
-      results_list <- lapply(1:nsim, function(k) {
+    # Count distinct allocations
+    env <- new.env(hash = TRUE, parent = emptyenv())
+    sum_alloc <- numeric(n)
+    names(sum_alloc) <- N
+
+    # Support variables for plots/tables. Only keep full history if n <= 3
+    keep_all <- (n <= 3 && method == "exact")
+    if (keep_all) {
+      DK_pi <- matrix(0, nrow = nperms, ncol = n)
+      colnames(DK_pi) <- N
+      arcs_pi <- vector("list", nperms)
+    } else {
+      # If n > 3, we only save the first 6 permutations for the console summary
+      DK_pi_6 <- matrix(0, nrow = min(6, nperms), ncol = n)
+      colnames(DK_pi_6) <- N
+    }
+
+    if (method == "exact") {
+      perms_output <- Pi_N
+    } else {
+      perms_output <- matrix("", nrow = min(6, nperms), ncol = n)
+    }
+
+    # Compute and aggregate one by one
+    for (k in 1:nperms) {
+      if (method == "exact") {
+        current_pi <- as.character(Pi_N[k, ])
+      } else {
         current_pi <- sample(N)
-        res <- .compute_dk(C_mat, current_pi, n)
-        list(allocations = res$allocations, arcs = res$arcs, pi = current_pi)
-      })
+        if (k <= 6) perms_output[k, ] <- current_pi
+      }
 
-      DK_pi <- do.call(rbind, lapply(results_list, `[[`, "allocations"))
-      arcs_pi <- lapply(results_list, `[[`, "arcs")
-      perms_output <- do.call(rbind, lapply(results_list, `[[`, "pi"))
+      # Compute Dutta-Kar allocation for the current permutation
+      res <- .compute_dk(C_mat, current_pi, n)
+      alloc <- res$allocations
+
+      # Accumulate for the average
+      sum_alloc <- sum_alloc + alloc
+
+      # Save info for tables and plots
+      if (keep_all) {
+        DK_pi[k, ] <- alloc
+        arcs_pi[[k]] <- res$arcs
+      } else if (k <= 6) {
+        DK_pi_6[k, ] <- alloc
+      }
+
+      # Create a unique key for each allocation
+      key <- paste(round(alloc, 8), collapse = "_")
+
+      if (exists(key, envir = env)) {
+        env[[key]]$count <- env[[key]]$count + 1
+      } else {
+        env[[key]] <- list(alloc = alloc, arcs = res$arcs, count = 1)
+      }
     }
 
     # Calculate the average allocation
-    avg_allocation <- colMeans(DK_pi)
+    avg_allocation <- sum_alloc / nperms
 
-    key <- apply(round(DK_pi, 8), 1, paste, collapse = "_")
-    first_idx <- !duplicated(key)
-    mult <- as.integer(table(key)[key[first_idx]])
+    # Extract unique allocations and trees
+    keys <- ls(env)
+    num_unique <- length(keys)
+    unique_DK_pi <- matrix(0, nrow = num_unique, ncol = n)
+    colnames(unique_DK_pi) <- N
+    unique_arcs <- vector("list", num_unique)
+    mult <- integer(num_unique)
 
-    unique_arcs <- arcs_pi[first_idx]
-
-    if (n > 3) {
-      perms_table <- data.frame(
-        pi = apply(perms_output[1:6, , drop = FALSE], 1, paste, collapse = "-"),
-        DK_pi[1:6, , drop = FALSE],
-        row.names = NULL,
-        check.names = FALSE
-      )
-      perms_summary <- data.frame(
-        # pi = apply(perms_output[first_idx, , drop = FALSE], 1, paste, collapse = "-"),
-        DK_pi[first_idx, , drop = FALSE],
-        times = mult,
-        row.names = NULL,
-        check.names = FALSE
-      )
-
-    } else {
-      perms_full <- data.frame(
-        pi = apply(perms_output, 1, paste, collapse = "-"),
-        DK_pi,
-        row.names = NULL,
-        check.names = FALSE
-      )
-      perms_table <- perms_full
-      perms_summary <- data.frame(
-        # pi = perms_full$pi[first_idx],
-        DK_pi[first_idx, , drop = FALSE],
-        times = mult,
-        row.names = NULL,
-        check.names = FALSE
-      )
+    for (i in seq_along(keys)) {
+      val <- env[[keys[i]]]
+      unique_DK_pi[i, ] <- val$alloc
+      unique_arcs[[i]] <- val$arcs
+      mult[i] <- val$count
     }
+
+    # Sort summary by the most frequent allocations
+    ord_idx <- order(mult, decreasing = TRUE)
+    unique_DK_pi <- unique_DK_pi[ord_idx, , drop = FALSE]
+    unique_arcs <- unique_arcs[ord_idx]
+    mult <- mult[ord_idx]
+
+    # Build final tables
+    DK_pi_preview <- if (keep_all) {
+      DK_pi[1:min(6, nrow(DK_pi)), , drop = FALSE]
+    } else {
+      DK_pi_6
+    }
+    pi_preview_rows <- min(6, nrow(perms_output))
+
+    perms_table <- data.frame(
+      pi = apply(perms_output[1:pi_preview_rows, , drop = FALSE], 1, paste, collapse = "-"),
+      DK_pi_preview,
+      row.names = NULL,
+      check.names = FALSE
+    )
+    perms_summary <- data.frame(
+      unique_DK_pi,
+      times = mult,
+      row.names = NULL,
+      check.names = FALSE
+    )
 
     perms <- structure(
       list(table = perms_table, summary = perms_summary, nperms = nperms),
