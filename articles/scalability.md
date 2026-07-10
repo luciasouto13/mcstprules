@@ -65,7 +65,7 @@ be <- Sys.time()
 time_bird <- round(as.numeric(difftime(be, bs,
                                        units = "secs")), 4)
 print(time_bird)
-#> [1] 3.8635
+#> [1] 3.9292
 pause()
 #> 
 #> [Press Enter to continue...]
@@ -84,7 +84,7 @@ ke <- Sys.time()
 time_kar <- round(as.numeric(difftime(ke, ks,
                                      units = "secs")), 4)
 print(time_kar)
-#> [1] 6.857
+#> [1] 6.878
 pause()
 #> 
 #> [Press Enter to continue...]

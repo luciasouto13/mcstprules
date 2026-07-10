@@ -112,7 +112,7 @@ estimates the average allocation through random sampling using <code>nsim</code>
 <li><p><code>total</code>: the total cost of the MCST, \(m(N_0, C)\).</p></li>
 <li><p><code>percentage</code>: the share of the total cost allocated to each agent, based on <code>e_dk</code>.</p></li>
 <li><p><code>ranking</code>: a ranking of agents by cost in <code>e_dk</code> (from highest to lowest; ties marked with *).</p></li>
-<li><p><code>perms</code>: if ties exist, a list with <code>$table</code> (allocations per permutation, only the first 6 rows shown if \(n&gt;3\)), <code>$summary</code> (distinct allocations with their multiplicity) and <code>$nperms</code> (total number of permutations computed); <code>NULL</code> if the MCST is unique.</p></li>
+<li><p><code>perms</code>: if ties exist, a list with <code>$table</code> (allocations for at most the first 6 permutations computed, regardless of \(n\)), <code>$summary</code> (distinct allocations with their multiplicity, sorted in decreasing order) and <code>$nperms</code> (total number of permutations computed); <code>NULL</code> if the MCST is unique.</p></li>
 <li><p><code>is_unique</code>: logical; if <code>TRUE</code>, the MCST is unique.</p></li>
 <li><p><code>method</code>: the method applied for computing the extended rule (<code>"exact"</code> or <code>"montecarlo"</code>).</p></li>
 </ul></div>
@@ -230,7 +230,7 @@ games. Games Econom Behav 48(2):223–248</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

@@ -82,10 +82,11 @@ A list containing:
 - `ranking`: a ranking of agents by cost in `e_bird` (from highest to
   lowest; ties marked with \*).
 
-- `perms`: if ties exist, a list with `$table` (allocations per
-  permutation, only the first 6 rows shown if \\n\>3\\), `$summary`
-  (distinct allocations with their multiplicity) and `$nperms` (total
-  number of permutations computed); `NULL` if the MCST is unique.
+- `perms`: if ties exist, a list with `$table` (allocations for at most
+  the first 6 permutations computed, regardless of \\n\\), `$summary`
+  (distinct allocations with their multiplicity, sorted in decreasing
+  order) and `$nperms` (total number of permutations computed); `NULL`
+  if the MCST is unique.
 
 - `is_unique`: logical; if `TRUE`, the MCST is unique.
 
