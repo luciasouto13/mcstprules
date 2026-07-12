@@ -185,8 +185,8 @@ mcstGamePrivate <- function(C, sol = c("shapley", "nucleolus"), draw = FALSE, wh
   which.plot <- match.arg(which.plot, several.ok = TRUE)
 
   # Check if Monte Carlo is actually necessary
-  if (sol == "shapley" && method == "montecarlo" && (2^n - 1) <= nsim) {
-    message("Warning: (2^n - 1) <= nsim. Consider using method = 'exact' for maximum efficiency")
+  if (sol == "shapley" && method == "montecarlo" && (2^n - 1) <= nsim * n) {
+    message("Warning: (2^n - 1) <= nsim * n. Consider using method = 'exact' for maximum efficiency")
   }
 
   # Performance validation
@@ -622,8 +622,8 @@ mcstGameIrred <- function(C, sol = c("shapley", "nucleolus"), draw = FALSE, whic
   which.plot <- match.arg(which.plot, several.ok = TRUE)
 
   # Check if Monte Carlo is actually necessary
-  if (sol == "shapley" && method == "montecarlo" && (2^n - 1) <= nsim) {
-    message("Warning: (2^n - 1) <= nsim. Consider using method = 'exact' for maximum efficiency")
+  if (sol == "shapley" && method == "montecarlo" && (2^n - 1) <= nsim * n) {
+    message("Warning: (2^n - 1) <= nsim * n. Consider using method = 'exact' for maximum efficiency")
   }
 
   # Performance validation
@@ -972,8 +972,8 @@ mcstGameOpt <- function(C, sol = c("shapley", "nucleolus"), draw = FALSE, which.
   which.plot <- match.arg(which.plot, several.ok = TRUE)
 
   # Check if Monte Carlo is actually necessary
-  if (sol == "shapley" && method == "montecarlo" && (2^n - 1) <= nsim) {
-    message("Warning: (2^n - 1) <= nsim. Consider using method = 'exact' for maximum efficiency")
+  if (sol == "shapley" && method == "montecarlo" && (2^n - 1) <= nsim * n) {
+    message("Warning: (2^n - 1) <= nsim * n. Consider using method = 'exact' for maximum efficiency")
   }
 
   # Performance validation
@@ -1376,8 +1376,8 @@ mcstGamePublic <- function(C, sol = c("shapley", "nucleolus"), draw = FALSE, whi
   which.plot <- match.arg(which.plot, several.ok = TRUE)
 
   # Check if Monte Carlo is actually necessary
-  if (sol == "shapley" && method == "montecarlo" && (2^n - 1) <= nsim) {
-    message("Warning: (2^n - 1) <= nsim. Consider using method = 'exact' for maximum efficiency")
+  if (sol == "shapley" && method == "montecarlo" && (2^n - 1) <= nsim * n) {
+    message("Warning: (2^n - 1) <= nsim * n. Consider using method = 'exact' for maximum efficiency")
   }
 
   # Performance validation
@@ -1782,8 +1782,8 @@ mcstGameCC <- function(C, sol = c("shapley", "nucleolus"), draw = FALSE, which.p
   which.plot <- match.arg(which.plot, several.ok = TRUE)
 
   # Check if Monte Carlo is actually necessary
-  if (sol == "shapley" && method == "montecarlo" && (2^n - 1) <= nsim) {
-    message("Warning: (2^n - 1) <= nsim. Consider using method = 'exact' for maximum efficiency")
+  if (sol == "shapley" && method == "montecarlo" && (2^n - 1) <= nsim * n) {
+    message("Warning: (2^n - 1) <= nsim * n. Consider using method = 'exact' for maximum efficiency")
   }
 
   # Performance validation
