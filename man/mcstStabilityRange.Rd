@@ -49,6 +49,10 @@ C_mat <- matrix(c(0, 10, 15, 20,
 mcstStabilityRange(C_mat)
 
 }
+\references{
+Tarjan RE (1982) Sensitivity analysis of minimum spanning trees and shortest
+path trees. Information Processing Letters, 14(1):30–33
+}
 \seealso{
 \code{\link{mcstBird}}, \code{\link{mcstDuttaKar}}, \code{\link{mcstFolk}}, \code{\link{mcstKar}} for allocation rules.
 

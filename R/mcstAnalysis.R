@@ -776,6 +776,10 @@ mcstCorePlot <- function(game = NULL, v = NULL, allocations = list(), titles = T
 #'
 #' \code{\link{mcstRules}} for an overview of the available rules and analysis tools in the package.
 #'
+#' @references
+#' Tarjan RE (1982) Sensitivity analysis of minimum spanning trees and shortest
+#' path trees. Information Processing Letters, 14(1):30–33
+#'
 #' @examples
 #' # Matrix input
 #' C_mat <- matrix(c(0, 10, 15, 20,
