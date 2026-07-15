@@ -52,6 +52,11 @@ Dutta-Kar's rule average allocations over all alternative optimal trees,
 which can induce non-proportional jumps in the final cost allocation
 vector.
 
+## References
+
+Tarjan RE (1982) Sensitivity analysis of minimum spanning trees and
+shortest path trees. Information Processing Letters, 14(1):30–33
+
 ## See also
 
 [`mcstBird`](https://luciasouto13.github.io/mcstprules/reference/mcstBird.md),
