@@ -54,7 +54,8 @@
       nodes <- sort(unique(c(from, to)))
       N     <- length(nodes)
 
-      m <- matrix(0, N, N, dimnames = list(nodes, nodes))
+      m <- matrix(Inf, N, N, dimnames = list(nodes, nodes))
+      diag(m) <- 0
       for (i in seq_along(from)) {
         m[from[i], to[i]] <- costs[i]
         m[to[i], from[i]] <- costs[i]
@@ -77,7 +78,10 @@
       stop("Package 'igraph' is required to handle igraph objects. Please install it")
 
     # Get adjacency matrix using weight attribute
+    m_unweighted <- as.matrix(igraph::as_adjacency_matrix(x, sparse = FALSE))
     m <- as.matrix(igraph::as_adjacency_matrix(x, attr = "weight", sparse = FALSE))
+    m[m_unweighted == 0] <- Inf
+    diag(m) <- 0
     m <- pmax(m, t(m))
     rownames(m) <- colnames(m) <- as.character(seq_len(nrow(m)) - 1L)
 
