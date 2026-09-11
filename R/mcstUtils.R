@@ -273,10 +273,15 @@
   }
 
   n <- nrow(adj) - 1
-  adj_plot <- adj
-  adj_plot[is.infinite(adj_plot)] <- 0
-  g <- igraph::graph_from_adjacency_matrix(adj_plot,
-                                           mode = "undirected", weighted = TRUE)
+  node_names <- rownames(adj)
+  idx <- which(upper.tri(adj) & is.finite(adj), arr.ind = TRUE)
+  edge_df <- data.frame(
+    from   = node_names[idx[, 1]],
+    to     = node_names[idx[, 2]],
+    weight = adj[idx]
+  )
+  g <- igraph::graph_from_data_frame(edge_df, directed = FALSE,
+                                     vertices = data.frame(name = node_names))
 
   arc_colors <- rep("grey80", igraph::ecount(g))
   arc_widths <- rep(1, igraph::ecount(g))
