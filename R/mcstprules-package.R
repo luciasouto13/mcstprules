@@ -18,18 +18,13 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @importFrom graphics
-#' abline barplot contour legend matplot points polygon
-#' segments text title mtext par
+#' @importFrom graphics abline barplot contour legend matplot points polygon segments text title mtext par
 #'
-#' @importFrom grDevices
-#' adjustcolor chull hcl.colors rainbow rgb devAskNewPage
+#' @importFrom grDevices adjustcolor chull hcl.colors rainbow rgb devAskNewPage
 #'
-#' @importFrom stats
-#' setNames
+#' @importFrom stats setNames
 #'
-#' @importFrom utils
-#' read.csv read.csv2 combn
+#' @importFrom utils read.csv read.csv2 combn
 ## usethis namespace: end
 NULL
 

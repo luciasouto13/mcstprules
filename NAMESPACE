@@ -42,25 +42,31 @@ export(mcstOWShapley)
 export(mcstPWShapley)
 export(mcstSensitivity)
 export(mcstStabilityRange)
-importFrom(grDevices,adjustcolor)
-importFrom(grDevices,chull)
-importFrom(grDevices,devAskNewPage)
-importFrom(grDevices,hcl.colors)
-importFrom(grDevices,rainbow)
-importFrom(grDevices,rgb)
-importFrom(graphics,abline)
-importFrom(graphics,barplot)
-importFrom(graphics,contour)
-importFrom(graphics,legend)
-importFrom(graphics,matplot)
-importFrom(graphics,mtext)
-importFrom(graphics,par)
-importFrom(graphics,points)
-importFrom(graphics,polygon)
-importFrom(graphics,segments)
-importFrom(graphics,text)
-importFrom(graphics,title)
+importFrom(grDevices,
+  adjustcolor,
+  chull,
+  devAskNewPage,
+  hcl.colors,
+  rainbow,
+  rgb
+)
+importFrom(graphics,
+  abline,
+  barplot,
+  contour,
+  legend,
+  matplot,
+  mtext,
+  par,
+  points,
+  polygon,
+  segments,
+  text,
+  title
+)
 importFrom(stats,setNames)
-importFrom(utils,combn)
-importFrom(utils,read.csv)
-importFrom(utils,read.csv2)
+importFrom(utils,
+  combn,
+  read.csv,
+  read.csv2
+)

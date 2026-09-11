@@ -31,5 +31,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Lucía Souto Vázquez \email{luciasouvaz@gmail.com}
 
+Authors:
+\itemize{
+  \item Lucía Souto Vázquez \email{luciasouvaz@gmail.com}
+}
+
 }
 \keyword{internal}

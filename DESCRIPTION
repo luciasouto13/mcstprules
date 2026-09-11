@@ -14,7 +14,6 @@ Description: Computes, analyzes, and visualizes cost allocation rules for
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.3
 Imports: 
     gtools,
     igraph,
@@ -31,3 +30,4 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+Config/roxygen2/version: 8.1.0
