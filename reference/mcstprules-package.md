@@ -29,3 +29,7 @@ Useful links:
 ## Author
 
 **Maintainer**: Lucía Souto Vázquez <luciasouvaz@gmail.com>
+
+Authors:
+
+- Lucía Souto Vázquez <luciasouvaz@gmail.com>
