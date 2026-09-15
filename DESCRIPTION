@@ -7,7 +7,7 @@ Authors@R:
            email = "luciasouvaz@gmail.com", 
            role = c("aut", "cre"))
 Description: Computes, analyzes, and visualizes cost allocation rules for 
-    Minimum Cost Spanning Tree Problems (MCSTP). The package implements 
+    Minimum Cost Spanning Tree Problems ('MCSTP'). The package implements 
     both algorithmic methods and rules based on cooperative game theory, 
     alongside a comprehensive suite of analytical tools to evaluate core 
     stability, geometric properties, and cost sensitivity.

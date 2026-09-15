@@ -12,3 +12,4 @@
 ^general\.R$
 ^\.github$
 ^articles$
+^cran-comments\.md$
